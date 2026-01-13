@@ -145,7 +145,7 @@ export async function POST(request, { params }) {
         }
 
         return NextResponse.json(
-          { success: false, message: 'Could not add event. Please try again.' },
+          { success: false, message: `Could not add event. Please try again. ${err}` },
           { status: 500, headers: corsHeaders }
         );
       }
