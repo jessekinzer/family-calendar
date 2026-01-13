@@ -33,12 +33,7 @@ function SetupContent() {
     try {
       const res = await fetch('/api/auth/status');
       const data = await res.json();
-      
-      if (data.authenticated) {
-        setStatus('connected');
-      } else {
-        setStatus('not_connected');
-      }
+      setStatus(data.authenticated ? 'connected' : 'not_connected');
     } catch (err) {
       setStatus('not_connected');
     }
@@ -50,31 +45,31 @@ function SetupContent() {
 
   if (status === 'checking') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50 px-6 safe-area-inset">
-        <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
-        <p className="mt-4 text-[15px] text-gray-500">Checking connection...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+        <p className="mt-3 text-sm text-gray-500">Checking connection...</p>
       </div>
     );
   }
 
   if (status === 'connected') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50 to-teal-50 px-6 safe-area-inset">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
         <div className="w-full max-w-sm text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full mx-auto mb-6 flex items-center justify-center shadow-xl">
-            <Check className="w-14 h-14 text-white" strokeWidth={3} />
+          <div className="w-12 h-12 bg-emerald-100 rounded-full mx-auto mb-5 flex items-center justify-center">
+            <Check className="w-6 h-6 text-emerald-600" strokeWidth={2.5} />
           </div>
 
-          <h1 className="text-[28px] font-semibold text-gray-900 mb-3 tracking-tight">Connected! 🎉</h1>
-          <p className="text-[15px] text-gray-500 mb-8">
-            Google Calendar is ready. Your wife can now add events!
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Connected</h1>
+          <p className="text-gray-500 text-sm mb-8">
+            Google Calendar is ready. Your wife can now add events.
           </p>
 
           <Button
             onClick={() => window.location.href = '/'}
-            className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
+            className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
           >
-            Open Calendar App
+            Open calendar
           </Button>
         </div>
       </div>
@@ -83,21 +78,21 @@ function SetupContent() {
 
   if (status === 'error') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-rose-50 to-pink-50 px-6 safe-area-inset">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
         <div className="w-full max-w-sm text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-pink-400 rounded-[22px] mx-auto mb-6 flex items-center justify-center shadow-lg">
-            <AlertCircle className="w-10 h-10 text-white" />
+          <div className="w-12 h-12 bg-red-100 rounded-full mx-auto mb-5 flex items-center justify-center">
+            <AlertCircle className="w-6 h-6 text-red-600" />
           </div>
 
-          <h1 className="text-[24px] font-semibold text-gray-900 mb-3 tracking-tight">Connection Failed</h1>
-          <p className="text-[15px] text-gray-500 mb-2">Something went wrong:</p>
-          <p className="text-[15px] text-rose-500 mb-8 font-medium">{error}</p>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Connection failed</h1>
+          <p className="text-gray-500 text-sm mb-2">Something went wrong:</p>
+          <p className="text-red-500 text-sm mb-8">{error}</p>
 
           <Button
             onClick={handleConnect}
-            className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
+            className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
           >
-            Try Again
+            Try again
           </Button>
         </div>
       </div>
@@ -106,46 +101,40 @@ function SetupContent() {
 
   // Not connected - show setup
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50 px-6 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
       <div className="w-full max-w-sm text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-rose-400 rounded-[22px] mx-auto mb-6 flex items-center justify-center shadow-lg">
-          <Calendar className="w-10 h-10 text-white" />
+        <div className="w-12 h-12 bg-gray-100 rounded-xl mx-auto mb-5 flex items-center justify-center">
+          <Calendar className="w-6 h-6 text-gray-600" />
         </div>
 
-        <h1 className="text-[28px] font-semibold text-gray-900 mb-3 tracking-tight">Setup Required</h1>
-        <p className="text-[15px] text-gray-500 mb-8 leading-relaxed">
-          Connect your Google Calendar to get started. This is a one-time setup.
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Connect Google Calendar</h1>
+        <p className="text-gray-500 text-sm mb-8">
+          One-time setup to enable adding events.
         </p>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6 text-left">
-          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">What happens next:</h2>
-          <div className="space-y-3">
+        <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left border border-gray-100">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">What happens next</p>
+          <div className="space-y-2.5">
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-[13px] font-semibold text-orange-500">1</span>
-              </div>
-              <span className="text-[15px] text-gray-600">Sign in with your Google account</span>
+              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">1</span>
+              <span className="text-sm text-gray-600">Sign in with Google</span>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-[13px] font-semibold text-orange-500">2</span>
-              </div>
-              <span className="text-[15px] text-gray-600">Grant permission to add calendar events</span>
+              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">2</span>
+              <span className="text-sm text-gray-600">Grant calendar access</span>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-[13px] font-semibold text-orange-500">3</span>
-              </div>
-              <span className="text-[15px] text-gray-600">You'll be redirected back here</span>
+              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">3</span>
+              <span className="text-sm text-gray-600">Return here</span>
             </div>
           </div>
         </div>
 
         <Button
           onClick={handleConnect}
-          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] active:scale-[0.98] text-white shadow-lg flex items-center justify-center gap-3 transition-transform"
+          className="w-full h-11 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-2"
         >
-          <svg className="w-5 h-5\" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -154,8 +143,8 @@ function SetupContent() {
           Connect with Google
         </Button>
 
-        <p className="text-[13px] text-gray-400 mt-6">
-          Your wife won't need to do this step.
+        <p className="text-xs text-gray-400 mt-6">
+          Your wife won't need to do this.
         </p>
       </div>
     </div>
@@ -165,8 +154,8 @@ function SetupContent() {
 export default function SetupPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
-        <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
       </div>
     }>
       <SetupContent />
