@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getOAuth2Client, storeRefreshToken, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
-import { google } from 'googleapis';
+import { getOAuthUrl, exchangeCodeForTokens, storeRefreshToken, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
 
 // CORS headers
 const corsHeaders = {
@@ -35,18 +34,7 @@ export async function GET(request, { params }) {
 
     // Generate Google OAuth URL
     if (path === 'auth/google') {
-      const oauth2Client = getOAuth2Client();
-      const scopes = [
-        'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/userinfo.email',
-      ];
-
-      const authUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: scopes,
-        prompt: 'consent',
-      });
-
+      const authUrl = getOAuthUrl();
       return NextResponse.redirect(authUrl);
     }
 
@@ -67,8 +55,7 @@ export async function GET(request, { params }) {
       }
 
       try {
-        const oauth2Client = getOAuth2Client();
-        const { tokens } = await oauth2Client.getToken(code);
+        const tokens = await exchangeCodeForTokens(code);
 
         if (tokens.refresh_token) {
           await storeRefreshToken(tokens.refresh_token);
