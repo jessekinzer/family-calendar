@@ -150,11 +150,14 @@ backend:
     file: "/app/app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "GET /api/auth/status returns authenticated state"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Returns authenticated:false and message:'Setup required' as expected (no Google OAuth configured yet). API working correctly."
 
   - task: "Add Calendar Event API"
     implemented: true
