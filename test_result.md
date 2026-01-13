@@ -116,6 +116,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET /api/health returns ok status"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Returns status:'ok' with timestamp. API working correctly."
 
   - task: "PIN Verification API"
     implemented: true
