@@ -168,11 +168,14 @@ backend:
     file: "/app/app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "POST /api/add-event creates Google Calendar event - needs Google auth to test"
+      - working: "NA"
+        agent: "testing"
+        comment: "✅ TESTED: Correctly returns 401 with 'Google Calendar not connected' message when no OAuth token exists. Expected behavior - requires user to complete Google OAuth setup first."
 
 frontend:
   - task: "PIN Entry Screen"
