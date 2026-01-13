@@ -386,43 +386,49 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
 
           {/* Time Section - Now shows by default with clear button styling */}
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            {/* Time Pickers - IMPROVED: Clear button styling */}
+            {/* Time Pickers - Clean single time display */}
             {!isAllDay && (
               <div className="px-4 py-4 space-y-3">
                 {/* Start Time - Button Style */}
                 <div>
                   <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Starts</label>
-                  <div className="relative">
-                    <div className="flex items-center bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
-                      <Clock className="w-5 h-5 text-orange-500 mr-3" />
-                      <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => handleStartTimeChange(e.target.value)}
-                        className="flex-1 h-full text-[17px] font-medium text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
-                        style={{ fontSize: '17px' }}
-                      />
-                      <span className="text-[17px] font-semibold text-orange-500">{formatTime12h(startTime)}</span>
+                  <label className="relative block cursor-pointer">
+                    <div className="flex items-center justify-between bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
+                      <div className="flex items-center">
+                        <Clock className="w-5 h-5 text-orange-500 mr-3" />
+                        <span className="text-[17px] font-semibold text-gray-900">{formatTime12h(startTime)}</span>
+                      </div>
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
                     </div>
-                  </div>
+                    <input
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => handleStartTimeChange(e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      style={{ fontSize: '17px' }}
+                    />
+                  </label>
                 </div>
 
                 {/* End Time - Button Style */}
                 <div>
                   <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Ends</label>
-                  <div className="relative">
-                    <div className="flex items-center bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
-                      <Clock className="w-5 h-5 text-orange-500 mr-3" />
-                      <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="flex-1 h-full text-[17px] font-medium text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
-                        style={{ fontSize: '17px' }}
-                      />
-                      <span className="text-[17px] font-semibold text-orange-500">{formatTime12h(endTime)}</span>
+                  <label className="relative block cursor-pointer">
+                    <div className="flex items-center justify-between bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
+                      <div className="flex items-center">
+                        <Clock className="w-5 h-5 text-orange-500 mr-3" />
+                        <span className="text-[17px] font-semibold text-gray-900">{formatTime12h(endTime)}</span>
+                      </div>
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
                     </div>
-                  </div>
+                    <input
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      style={{ fontSize: '17px' }}
+                    />
+                  </label>
                 </div>
               </div>
             )}
