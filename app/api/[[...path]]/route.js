@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getOAuthUrl, exchangeCodeForTokens, storeRefreshToken, getStoredRefreshToken, createCalendarEvent, clearRefreshToken } from '@/lib/googleCalendar';
+import { getOAuthUrl, exchangeCodeForTokens, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
 
 // CORS headers
 const corsHeaders = {
@@ -8,12 +8,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-// Handle OPTIONS for CORS
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
-// Route handler
 export async function GET(request, { params }) {
   const path = params?.path?.join('/') || '';
   
@@ -23,9 +21,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() }, { headers: corsHeaders });
     }
 
-    // Check if refresh token exists
+    // Check if refresh token exists in env
     if (path === 'auth/status') {
-      const token = await getStoredRefreshToken();
+      const token = getStoredRefreshToken();
       return NextResponse.json({ 
         authenticated: !!token,
         message: token ? 'Google Calendar is connected!' : 'Setup required'
@@ -38,19 +36,18 @@ export async function GET(request, { params }) {
       return NextResponse.redirect(authUrl);
     }
 
-    // Google OAuth callback
+    // Google OAuth callback - NOW SHOWS TOKEN TO COPY
     if (path === 'auth/google/callback') {
       const url = new URL(request.url);
       const code = url.searchParams.get('code');
       const error = url.searchParams.get('error');
+      const baseUrl = new URL(request.url).origin;
 
       if (error) {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return NextResponse.redirect(`${baseUrl}/setup?error=${encodeURIComponent(error)}`);
       }
 
       if (!code) {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return NextResponse.redirect(`${baseUrl}/setup?error=no_code`);
       }
 
@@ -58,14 +55,13 @@ export async function GET(request, { params }) {
         const tokens = await exchangeCodeForTokens(code);
 
         if (tokens.refresh_token) {
-          await storeRefreshToken(tokens.refresh_token);
+          // Redirect to setup page with the token to display
+          return NextResponse.redirect(`${baseUrl}/setup?token=${encodeURIComponent(tokens.refresh_token)}`);
+        } else {
+          return NextResponse.redirect(`${baseUrl}/setup?error=no_refresh_token`);
         }
-
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        return NextResponse.redirect(`${baseUrl}/setup?success=true`);
       } catch (err) {
         console.error('OAuth callback error:', err);
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return NextResponse.redirect(`${baseUrl}/setup?error=${encodeURIComponent(err.message)}`);
       }
     }
@@ -105,7 +101,6 @@ export async function POST(request, { params }) {
       const body = await request.json();
       const { title, date, startTime, endTime, notes, isAllDay } = body;
 
-      // Validate required fields
       if (!title || !date) {
         return NextResponse.json(
           { success: false, message: 'Title and date are required' },
@@ -113,7 +108,6 @@ export async function POST(request, { params }) {
         );
       }
 
-      // Validate time fields if not all-day
       if (!isAllDay && (!startTime || !endTime)) {
         return NextResponse.json(
           { success: false, message: 'Start and end times are required for timed events' },
@@ -139,7 +133,6 @@ export async function POST(request, { params }) {
       } catch (err) {
         console.error('Calendar error:', err);
         
-        // Handle specific error codes for auto-reconnect
         if (err.code === 'NO_REFRESH_TOKEN' || err.code === 'TOKEN_EXPIRED') {
           return NextResponse.json(
             { 
