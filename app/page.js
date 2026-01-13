@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Calendar, Check, ChevronDown, ChevronUp, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
+import { Calendar, Check, ChevronDown, ChevronUp, Loader2, RefreshCw, ExternalLink, Clock } from 'lucide-react';
 import { format, parse } from 'date-fns';
 
 // PIN Entry Screen Component - iOS Style
@@ -14,7 +14,6 @@ function PinScreen({ onSuccess }) {
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    // Focus first input on mount
     inputRefs.current[0]?.focus();
   }, []);
 
@@ -26,12 +25,10 @@ function PinScreen({ onSuccess }) {
     setPin(newPin);
     setError('');
 
-    // Auto-focus next input
     if (value && index < 3) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto-submit when complete
     if (value && index === 3 && newPin.every(d => d !== '')) {
       verifyPin(newPin.join(''));
     }
@@ -64,7 +61,6 @@ function PinScreen({ onSuccess }) {
         setError('Incorrect PIN');
         setPin(['', '', '', '']);
         inputRefs.current[0]?.focus();
-        // Haptic feedback on iOS
         if (navigator.vibrate) navigator.vibrate(100);
       }
     } catch (err) {
@@ -98,19 +94,14 @@ function PinScreen({ onSuccess }) {
               onChange={(e) => handlePinInput(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               className="w-[60px] h-[72px] text-[32px] font-semibold text-center rounded-2xl border-0 bg-white shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition-all caret-transparent"
-              style={{ 
-                WebkitAppearance: 'none',
-                fontSize: '32px'
-              }}
+              style={{ WebkitAppearance: 'none', fontSize: '32px' }}
               disabled={loading}
             />
           ))}
         </div>
 
         {error && (
-          <div className="text-rose-500 font-medium text-[15px] mb-4">
-            {error}
-          </div>
+          <div className="text-rose-500 font-medium text-[15px] mb-4">{error}</div>
         )}
 
         {loading && (
@@ -124,7 +115,7 @@ function PinScreen({ onSuccess }) {
   );
 }
 
-// Success Screen Component - iOS Style with Event Details
+// Success Screen Component - iOS Style with Event Details - FIXED PADDING
 function SuccessScreen({ eventData, onAddAnother }) {
   const [countdown, setCountdown] = useState(5);
 
@@ -149,39 +140,39 @@ function SuccessScreen({ eventData, onAddAnother }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50 to-teal-50 px-6 safe-area-inset">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full mx-auto flex items-center justify-center shadow-xl">
-            <Check className="w-14 h-14 text-white" strokeWidth={3} />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50 to-teal-50 px-5 safe-area-inset">
+      <div className="w-full max-w-[350px] text-center">
+        <div className="mb-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full mx-auto flex items-center justify-center shadow-xl">
+            <Check className="w-10 h-10 text-white" strokeWidth={3} />
           </div>
         </div>
 
-        <h1 className="text-[28px] font-semibold text-gray-900 mb-6 tracking-tight">Added! 🎉</h1>
+        <h1 className="text-[24px] font-semibold text-gray-900 mb-5 tracking-tight">Added! 🎉</h1>
         
-        {/* Event Details Card */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6 text-left">
-          <div className="space-y-4">
+        {/* Event Details Card - Better mobile padding */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 text-left mx-1">
+          <div className="space-y-3">
             <div>
-              <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Event</p>
-              <p className="text-[17px] font-semibold text-gray-900">{eventData.title}</p>
+              <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Event</p>
+              <p className="text-[16px] font-semibold text-gray-900">{eventData.title}</p>
             </div>
             <div className="h-px bg-gray-100" />
             <div>
-              <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Date</p>
-              <p className="text-[17px] text-gray-900">{eventData.dateFormatted}</p>
+              <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Date</p>
+              <p className="text-[16px] text-gray-900">{eventData.dateFormatted}</p>
             </div>
             <div className="h-px bg-gray-100" />
             <div>
-              <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Time</p>
-              <p className="text-[17px] text-gray-900">{formatEventTime()}</p>
+              <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Time</p>
+              <p className="text-[16px] text-gray-900">{formatEventTime()}</p>
             </div>
             {eventData.notes && (
               <>
                 <div className="h-px bg-gray-100" />
                 <div>
-                  <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Notes</p>
-                  <p className="text-[15px] text-gray-700">{eventData.notes}</p>
+                  <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Notes</p>
+                  <p className="text-[14px] text-gray-700">{eventData.notes}</p>
                 </div>
               </>
             )}
@@ -194,7 +185,7 @@ function SuccessScreen({ eventData, onAddAnother }) {
             href={eventData.htmlLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 text-[15px] text-blue-600 font-medium mb-6 active:opacity-70"
+            className="flex items-center justify-center gap-2 text-[15px] text-blue-600 font-medium mb-5 active:opacity-70"
           >
             <ExternalLink className="w-4 h-4" />
             View in Google Calendar
@@ -203,12 +194,12 @@ function SuccessScreen({ eventData, onAddAnother }) {
 
         <Button
           onClick={onAddAnother}
-          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
+          className="w-full h-[52px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
         >
           Add Another Event
         </Button>
 
-        <p className="text-gray-400 mt-5 text-[13px]">
+        <p className="text-gray-400 mt-4 text-[13px]">
           Returning in {countdown}s
         </p>
       </div>
@@ -265,11 +256,11 @@ function ErrorScreen({ message, onRetry }) {
   );
 }
 
-// Event Form Component - iOS Native Style
+// Event Form Component - iOS Native Style - FIXED: Time is default, better time buttons
 function EventForm({ onSuccess, onError, onNeedsReauth }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [isAllDay, setIsAllDay] = useState(true);
+  const [isAllDay, setIsAllDay] = useState(false); // CHANGED: Default to false (time selection)
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [notes, setNotes] = useState('');
@@ -331,7 +322,7 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
         // Reset form
         setTitle('');
         setDate(format(new Date(), 'yyyy-MM-dd'));
-        setIsAllDay(true);
+        setIsAllDay(false); // Reset to default (time selection)
         setStartTime('09:00');
         setEndTime('10:00');
         setNotes('');
@@ -393,51 +384,59 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
             )}
           </div>
 
-          {/* All Day Toggle - iOS Style */}
+          {/* Time Section - Now shows by default with clear button styling */}
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            {/* Time Pickers - IMPROVED: Clear button styling */}
+            {!isAllDay && (
+              <div className="px-4 py-4 space-y-3">
+                {/* Start Time - Button Style */}
+                <div>
+                  <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Starts</label>
+                  <div className="relative">
+                    <div className="flex items-center bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
+                      <Clock className="w-5 h-5 text-orange-500 mr-3" />
+                      <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => handleStartTimeChange(e.target.value)}
+                        className="flex-1 h-full text-[17px] font-medium text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
+                        style={{ fontSize: '17px' }}
+                      />
+                      <span className="text-[17px] font-semibold text-orange-500">{formatTime12h(startTime)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* End Time - Button Style */}
+                <div>
+                  <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Ends</label>
+                  <div className="relative">
+                    <div className="flex items-center bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
+                      <Clock className="w-5 h-5 text-orange-500 mr-3" />
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className="flex-1 h-full text-[17px] font-medium text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
+                        style={{ fontSize: '17px' }}
+                      />
+                      <span className="text-[17px] font-semibold text-orange-500">{formatTime12h(endTime)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* All Day Toggle - Now at bottom as optional */}
+            <div className="h-px bg-gray-100 mx-4" />
             <div className="flex items-center justify-between px-4 h-[56px]">
-              <span className="text-[17px] text-gray-900">All day</span>
+              <span className="text-[17px] text-gray-900">All day event</span>
               <Switch
                 checked={isAllDay}
                 onCheckedChange={setIsAllDay}
                 className="data-[state=checked]:bg-orange-400 scale-110"
               />
             </div>
-
-            {/* Time Pickers - iOS Style */}
-            {!isAllDay && (
-              <>
-                <div className="h-px bg-gray-100 mx-4" />
-                <div className="px-4 py-4 space-y-4">
-                  <div>
-                    <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Starts</label>
-                    <div className="flex items-center justify-between">
-                      <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => handleStartTimeChange(e.target.value)}
-                        className="flex-1 h-[44px] text-[17px] text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
-                        style={{ fontSize: '17px' }}
-                      />
-                      <span className="text-[15px] text-gray-500 ml-4">{formatTime12h(startTime)}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Ends</label>
-                    <div className="flex items-center justify-between">
-                      <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="flex-1 h-[44px] text-[17px] text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
-                        style={{ fontSize: '17px' }}
-                      />
-                      <span className="text-[15px] text-gray-500 ml-4">{formatTime12h(endTime)}</span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {/* Notes - iOS Style Expandable */}
