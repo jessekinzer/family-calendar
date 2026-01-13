@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Calendar, Check, ChevronDown, ChevronUp, Loader2, RefreshCw, ExternalLink, Clock } from 'lucide-react';
 import { format, parse } from 'date-fns';
 
-// PIN Entry Screen Component - iOS Style
+// PIN Entry Screen - Notion Style
 function PinScreen({ onSuccess }) {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState('');
@@ -71,17 +71,17 @@ function PinScreen({ onSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50 px-6 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 safe-area-inset">
       <div className="w-full max-w-xs text-center">
         <div className="mb-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-rose-400 rounded-[22px] mx-auto mb-5 flex items-center justify-center shadow-lg">
-            <Calendar className="w-10 h-10 text-white" />
+          <div className="w-14 h-14 bg-gray-100 rounded-xl mx-auto mb-5 flex items-center justify-center">
+            <Calendar className="w-7 h-7 text-gray-600" />
           </div>
-          <h1 className="text-[28px] font-semibold text-gray-900 mb-2 tracking-tight">Family Calendar</h1>
-          <p className="text-[17px] text-gray-500">Enter PIN to continue</p>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Family Calendar</h1>
+          <p className="text-gray-500">Enter your PIN</p>
         </div>
 
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="flex justify-center gap-3 mb-6">
           {[0, 1, 2, 3].map((index) => (
             <input
               key={index}
@@ -93,21 +93,21 @@ function PinScreen({ onSuccess }) {
               value={pin[index]}
               onChange={(e) => handlePinInput(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-[60px] h-[72px] text-[32px] font-semibold text-center rounded-2xl border-0 bg-white shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition-all caret-transparent"
-              style={{ WebkitAppearance: 'none', fontSize: '32px' }}
+              className="w-14 h-16 text-2xl font-semibold text-center rounded-lg border border-gray-200 bg-gray-50 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+              style={{ WebkitAppearance: 'none', fontSize: '24px' }}
               disabled={loading}
             />
           ))}
         </div>
 
         {error && (
-          <div className="text-rose-500 font-medium text-[15px] mb-4">{error}</div>
+          <div className="text-red-500 text-sm mb-4">{error}</div>
         )}
 
         {loading && (
           <div className="flex items-center justify-center gap-2 text-gray-500">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-[15px]">Verifying...</span>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Verifying...</span>
           </div>
         )}
       </div>
@@ -115,7 +115,7 @@ function PinScreen({ onSuccess }) {
   );
 }
 
-// Success Screen Component - iOS Style with Event Details - FIXED PADDING
+// Success Screen - Notion Style
 function SuccessScreen({ eventData, onAddAnother }) {
   const [countdown, setCountdown] = useState(5);
 
@@ -136,70 +136,69 @@ function SuccessScreen({ eventData, onAddAnother }) {
 
   const formatEventTime = () => {
     if (eventData.isAllDay) return 'All day';
-    return `${eventData.startTimeFormatted} - ${eventData.endTimeFormatted}`;
+    return `${eventData.startTimeFormatted} – ${eventData.endTimeFormatted}`;
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50 to-teal-50 px-5 safe-area-inset">
-      <div className="w-full max-w-[350px] text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-5 safe-area-inset">
+      <div className="w-full max-w-sm text-center">
         <div className="mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full mx-auto flex items-center justify-center shadow-xl">
-            <Check className="w-10 h-10 text-white" strokeWidth={3} />
+          <div className="w-12 h-12 bg-emerald-100 rounded-full mx-auto flex items-center justify-center">
+            <Check className="w-6 h-6 text-emerald-600" strokeWidth={2.5} />
           </div>
         </div>
 
-        <h1 className="text-[24px] font-semibold text-gray-900 mb-5 tracking-tight">Added! 🎉</h1>
+        <h1 className="text-xl font-semibold text-gray-900 mb-6">Event added</h1>
         
-        {/* Event Details Card - Better mobile padding */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 text-left mx-1">
+        {/* Event Details */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-5 text-left border border-gray-100">
           <div className="space-y-3">
             <div>
-              <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Event</p>
-              <p className="text-[16px] font-semibold text-gray-900">{eventData.title}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Event</p>
+              <p className="text-base font-medium text-gray-900">{eventData.title}</p>
             </div>
-            <div className="h-px bg-gray-100" />
+            <div className="h-px bg-gray-200" />
             <div>
-              <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Date</p>
-              <p className="text-[16px] text-gray-900">{eventData.dateFormatted}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Date</p>
+              <p className="text-base text-gray-900">{eventData.dateFormatted}</p>
             </div>
-            <div className="h-px bg-gray-100" />
+            <div className="h-px bg-gray-200" />
             <div>
-              <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Time</p>
-              <p className="text-[16px] text-gray-900">{formatEventTime()}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Time</p>
+              <p className="text-base text-gray-900">{formatEventTime()}</p>
             </div>
             {eventData.notes && (
               <>
-                <div className="h-px bg-gray-100" />
+                <div className="h-px bg-gray-200" />
                 <div>
-                  <p className="text-[12px] text-gray-500 uppercase tracking-wide mb-0.5">Notes</p>
-                  <p className="text-[14px] text-gray-700">{eventData.notes}</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Notes</p>
+                  <p className="text-sm text-gray-700">{eventData.notes}</p>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        {/* View in Google Calendar */}
         {eventData.htmlLink && (
           <a
             href={eventData.htmlLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 text-[15px] text-blue-600 font-medium mb-5 active:opacity-70"
+            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 mb-5"
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-3.5 h-3.5" />
             View in Google Calendar
           </a>
         )}
 
         <Button
           onClick={onAddAnother}
-          className="w-full h-[52px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
+          className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
         >
-          Add Another Event
+          Add another event
         </Button>
 
-        <p className="text-gray-400 mt-4 text-[13px]">
+        <p className="text-gray-400 mt-4 text-xs">
           Returning in {countdown}s
         </p>
       </div>
@@ -207,23 +206,23 @@ function SuccessScreen({ eventData, onAddAnother }) {
   );
 }
 
-// Reconnect Screen - When Google auth expires
+// Reconnect Screen - Notion Style
 function ReconnectScreen({ onReconnect }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-amber-50 to-orange-50 px-6 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 safe-area-inset">
       <div className="w-full max-w-sm text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-400 rounded-[22px] mx-auto mb-6 flex items-center justify-center shadow-lg">
-          <RefreshCw className="w-10 h-10 text-white" />
+        <div className="w-12 h-12 bg-amber-100 rounded-full mx-auto mb-5 flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 text-amber-600" />
         </div>
 
-        <h1 className="text-[24px] font-semibold text-gray-900 mb-3 tracking-tight">Reconnect Required</h1>
-        <p className="text-[15px] text-gray-500 mb-8 leading-relaxed">
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Reconnect required</h1>
+        <p className="text-gray-500 text-sm mb-8">
           Your Google Calendar connection has expired. This happens occasionally for security.
         </p>
 
         <Button
           onClick={onReconnect}
-          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-[0.98] text-white shadow-lg transition-transform"
+          className="w-full h-11 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
         >
           Reconnect Google Calendar
         </Button>
@@ -232,35 +231,34 @@ function ReconnectScreen({ onReconnect }) {
   );
 }
 
-// Error Screen Component - iOS Style
+// Error Screen - Notion Style
 function ErrorScreen({ message, onRetry }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-rose-50 to-pink-50 px-6 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 safe-area-inset">
       <div className="w-full max-w-sm text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-pink-400 rounded-[22px] mx-auto mb-6 flex items-center justify-center shadow-lg">
-          <span className="text-4xl">😕</span>
+        <div className="w-12 h-12 bg-red-100 rounded-full mx-auto mb-5 flex items-center justify-center">
+          <span className="text-xl">×</span>
         </div>
 
-        <h1 className="text-[24px] font-semibold text-gray-900 mb-3 tracking-tight">Oops!</h1>
-        <p className="text-[15px] text-gray-500 mb-8">{message || "Could not add event. Please try again."}</p>
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
+        <p className="text-gray-500 text-sm mb-8">{message || "Could not add event. Please try again."}</p>
 
         <Button
           onClick={onRetry}
-          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
+          className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
         >
-          <RefreshCw className="w-5 h-5 mr-2" />
-          Try Again
+          Try again
         </Button>
       </div>
     </div>
   );
 }
 
-// Event Form Component - iOS Native Style - FIXED: Time is default, better time buttons
+// Event Form - Notion Style
 function EventForm({ onSuccess, onError, onNeedsReauth }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [isAllDay, setIsAllDay] = useState(false); // CHANGED: Default to false (time selection)
+  const [isAllDay, setIsAllDay] = useState(false);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [notes, setNotes] = useState('');
@@ -287,7 +285,6 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!title.trim()) return;
 
     setLoading(true);
@@ -319,10 +316,9 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
           notes: notes.trim(),
           htmlLink: data.event?.htmlLink,
         });
-        // Reset form
         setTitle('');
         setDate(format(new Date(), 'yyyy-MM-dd'));
-        setIsAllDay(false); // Reset to default (time selection)
+        setIsAllDay(false);
         setStartTime('09:00');
         setEndTime('10:00');
         setNotes('');
@@ -340,155 +336,150 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 safe-area-inset">
+    <div className="min-h-screen bg-white safe-area-inset">
       <div className="max-w-lg mx-auto px-4 pb-8">
         {/* Header */}
-        <div className="text-center pt-8 pb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-rose-400 rounded-[18px] mx-auto mb-4 flex items-center justify-center shadow-lg">
-            <Calendar className="w-8 h-8 text-white" />
+        <div className="pt-8 pb-6">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-gray-600" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900">New event</h1>
           </div>
-          <h1 className="text-[24px] font-semibold text-gray-900 tracking-tight">Add Event</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title - iOS Style Input */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Title */}
+          <div>
             <input
               type="text"
-              placeholder="What's happening?"
+              placeholder="Event name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full h-[56px] px-4 text-[17px] text-gray-900 placeholder-gray-400 border-0 focus:ring-0 outline-none"
-              style={{ fontSize: '17px' }}
+              className="w-full h-12 px-3 text-base text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+              style={{ fontSize: '16px' }}
               required
             />
           </div>
 
-          {/* Date - iOS Style */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3">
-              <label className="text-[13px] text-gray-500 uppercase tracking-wide">Date</label>
+          {/* Date */}
+          <div>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1.5">Date</label>
+            <div className="relative">
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full h-[44px] text-[17px] text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
-                style={{ fontSize: '17px' }}
+                className="w-full h-12 px-3 text-base text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                style={{ fontSize: '16px' }}
                 required
               />
             </div>
             {date && (
-              <div className="px-4 pb-3 -mt-1">
-                <span className="text-[15px] text-orange-500 font-medium">{dayOfWeek}, {formattedDate}</span>
-              </div>
+              <p className="text-sm text-blue-600 mt-1.5">{dayOfWeek}, {formattedDate}</p>
             )}
           </div>
 
-          {/* Time Section - Now shows by default with clear button styling */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            {/* Time Pickers - Clean single time display */}
+          {/* Time Section */}
+          <div className="space-y-3">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">Time</label>
+            
             {!isAllDay && (
-              <div className="px-4 py-4 space-y-3">
-                {/* Start Time - Button Style */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Start Time */}
                 <div>
-                  <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Starts</label>
+                  <p className="text-xs text-gray-500 mb-1.5">Starts</p>
                   <label className="relative block cursor-pointer">
-                    <div className="flex items-center justify-between bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
-                      <div className="flex items-center">
-                        <Clock className="w-5 h-5 text-orange-500 mr-3" />
-                        <span className="text-[17px] font-semibold text-gray-900">{formatTime12h(startTime)}</span>
+                    <div className="flex items-center justify-between h-12 px-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="text-base font-medium text-gray-900">{formatTime12h(startTime)}</span>
                       </div>
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
                     </div>
                     <input
                       type="time"
                       value={startTime}
                       onChange={(e) => handleStartTimeChange(e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      style={{ fontSize: '17px' }}
                     />
                   </label>
                 </div>
 
-                {/* End Time - Button Style */}
+                {/* End Time */}
                 <div>
-                  <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Ends</label>
+                  <p className="text-xs text-gray-500 mb-1.5">Ends</p>
                   <label className="relative block cursor-pointer">
-                    <div className="flex items-center justify-between bg-gray-100 rounded-xl px-4 h-[50px] active:bg-gray-200 transition-colors">
-                      <div className="flex items-center">
-                        <Clock className="w-5 h-5 text-orange-500 mr-3" />
-                        <span className="text-[17px] font-semibold text-gray-900">{formatTime12h(endTime)}</span>
+                    <div className="flex items-center justify-between h-12 px-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="text-base font-medium text-gray-900">{formatTime12h(endTime)}</span>
                       </div>
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
                     </div>
                     <input
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      style={{ fontSize: '17px' }}
                     />
                   </label>
                 </div>
               </div>
             )}
 
-            {/* All Day Toggle - Now at bottom as optional */}
-            <div className="h-px bg-gray-100 mx-4" />
-            <div className="flex items-center justify-between px-4 h-[56px]">
-              <span className="text-[17px] text-gray-900">All day event</span>
+            {/* All Day Toggle */}
+            <div className="flex items-center justify-between h-12 px-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <span className="text-base text-gray-700">All day</span>
               <Switch
                 checked={isAllDay}
                 onCheckedChange={setIsAllDay}
-                className="data-[state=checked]:bg-orange-400 scale-110"
+                className="data-[state=checked]:bg-blue-600"
               />
             </div>
           </div>
 
-          {/* Notes - iOS Style Expandable */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Notes */}
+          <div>
             <button
               type="button"
               onClick={() => setShowNotes(!showNotes)}
-              className="w-full flex items-center justify-between px-4 h-[56px] active:bg-gray-50"
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
-              <span className="text-[17px] text-gray-900">Notes</span>
               {showNotes ? (
-                <ChevronUp className="w-5 h-5 text-gray-400" />
+                <ChevronUp className="w-4 h-4" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400" />
+                <ChevronDown className="w-4 h-4" />
               )}
+              {showNotes ? 'Hide notes' : 'Add notes'}
             </button>
 
             {showNotes && (
-              <>
-                <div className="h-px bg-gray-100 mx-4" />
-                <textarea
-                  placeholder="Any details?"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 text-[17px] text-gray-900 placeholder-gray-400 border-0 focus:ring-0 outline-none resize-none"
-                  rows={3}
-                  style={{ fontSize: '17px' }}
-                />
-              </>
+              <textarea
+                placeholder="Add details..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full mt-2 px-3 py-3 text-base text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none transition-all"
+                rows={3}
+                style={{ fontSize: '16px' }}
+              />
             )}
           </div>
 
-          {/* Submit Button - iOS Style */}
-          <div className="pt-4">
+          {/* Submit Button */}
+          <div className="pt-2">
             <Button
               type="submit"
               disabled={loading || !title.trim()}
-              className="w-full h-[56px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-transform"
+              className="w-full h-12 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Adding...
                 </>
               ) : (
-                'Add to Calendar 📅'
+                'Add to calendar'
               )}
             </Button>
           </div>
@@ -498,10 +489,9 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
   );
 }
 
-// Main App Component
+// Main App
 export default function FamilyCalendar() {
   const [screen, setScreen] = useState('loading');
-  const [authenticated, setAuthenticated] = useState(false);
   const [eventData, setEventData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -511,7 +501,6 @@ export default function FamilyCalendar() {
       try {
         const { authenticated, expires } = JSON.parse(auth);
         if (authenticated && expires > Date.now()) {
-          setAuthenticated(true);
           setScreen('form');
           return;
         }
@@ -520,63 +509,25 @@ export default function FamilyCalendar() {
     setScreen('pin');
   }, []);
 
-  const handlePinSuccess = () => {
-    setAuthenticated(true);
-    setScreen('form');
-  };
-
-  const handleEventSuccess = (data) => {
-    setEventData(data);
-    setScreen('success');
-  };
-
-  const handleError = (message) => {
-    setErrorMessage(message);
-    setScreen('error');
-  };
-
-  const handleNeedsReauth = () => {
-    setScreen('reconnect');
-  };
-
-  const handleReconnect = () => {
-    window.location.href = '/setup';
-  };
-
-  const handleReturnToForm = () => {
-    setScreen('form');
-    setEventData(null);
-    setErrorMessage('');
-  };
+  const handlePinSuccess = () => setScreen('form');
+  const handleEventSuccess = (data) => { setEventData(data); setScreen('success'); };
+  const handleError = (message) => { setErrorMessage(message); setScreen('error'); };
+  const handleNeedsReauth = () => setScreen('reconnect');
+  const handleReconnect = () => { window.location.href = '/setup'; };
+  const handleReturnToForm = () => { setScreen('form'); setEventData(null); setErrorMessage(''); };
 
   if (screen === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
-        <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
       </div>
     );
   }
 
-  if (screen === 'pin') {
-    return <PinScreen onSuccess={handlePinSuccess} />;
-  }
-
-  if (screen === 'success') {
-    return (
-      <SuccessScreen
-        eventData={eventData}
-        onAddAnother={handleReturnToForm}
-      />
-    );
-  }
-
-  if (screen === 'reconnect') {
-    return <ReconnectScreen onReconnect={handleReconnect} />;
-  }
-
-  if (screen === 'error') {
-    return <ErrorScreen message={errorMessage} onRetry={handleReturnToForm} />;
-  }
+  if (screen === 'pin') return <PinScreen onSuccess={handlePinSuccess} />;
+  if (screen === 'success') return <SuccessScreen eventData={eventData} onAddAnother={handleReturnToForm} />;
+  if (screen === 'reconnect') return <ReconnectScreen onReconnect={handleReconnect} />;
+  if (screen === 'error') return <ErrorScreen message={errorMessage} onRetry={handleReturnToForm} />;
 
   return <EventForm onSuccess={handleEventSuccess} onError={handleError} onNeedsReauth={handleNeedsReauth} />;
 }
