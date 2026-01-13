@@ -1,19 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Check, ChevronDown, ChevronUp, Loader2, RefreshCw } from 'lucide-react';
-import { format, addHours, parse } from 'date-fns';
+import { Calendar, Check, ChevronDown, ChevronUp, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
+import { format, parse } from 'date-fns';
 
-// PIN Entry Screen Component
+// PIN Entry Screen Component - iOS Style
 function PinScreen({ onSuccess }) {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const inputRefs = useRef([]);
+
+  useEffect(() => {
+    // Focus first input on mount
+    inputRefs.current[0]?.focus();
+  }, []);
 
   const handlePinInput = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -25,8 +28,7 @@ function PinScreen({ onSuccess }) {
 
     // Auto-focus next input
     if (value && index < 3) {
-      const nextInput = document.getElementById(`pin-${index + 1}`);
-      nextInput?.focus();
+      inputRefs.current[index + 1]?.focus();
     }
 
     // Auto-submit when complete
@@ -37,8 +39,7 @@ function PinScreen({ onSuccess }) {
 
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !pin[index] && index > 0) {
-      const prevInput = document.getElementById(`pin-${index - 1}`);
-      prevInput?.focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
@@ -54,54 +55,60 @@ function PinScreen({ onSuccess }) {
       const data = await res.json();
       
       if (data.success) {
-        // Remember for 7 days
         localStorage.setItem('family_calendar_auth', JSON.stringify({
           authenticated: true,
           expires: Date.now() + (7 * 24 * 60 * 60 * 1000)
         }));
         onSuccess();
       } else {
-        setError('Incorrect PIN. Try again!');
+        setError('Incorrect PIN');
         setPin(['', '', '', '']);
-        document.getElementById('pin-0')?.focus();
+        inputRefs.current[0]?.focus();
+        // Haptic feedback on iOS
+        if (navigator.vibrate) navigator.vibrate(100);
       }
     } catch (err) {
-      setError('Something went wrong. Try again!');
+      setError('Connection error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-6">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-rose-400 rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50 px-6 safe-area-inset">
+      <div className="w-full max-w-xs text-center">
+        <div className="mb-10">
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-rose-400 rounded-[22px] mx-auto mb-5 flex items-center justify-center shadow-lg">
             <Calendar className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Family Calendar</h1>
-          <p className="text-gray-500 text-lg">Enter your PIN to continue</p>
+          <h1 className="text-[28px] font-semibold text-gray-900 mb-2 tracking-tight">Family Calendar</h1>
+          <p className="text-[17px] text-gray-500">Enter PIN to continue</p>
         </div>
 
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="flex justify-center gap-3 mb-8">
           {[0, 1, 2, 3].map((index) => (
             <input
               key={index}
-              id={`pin-${index}`}
+              ref={(el) => (inputRefs.current[index] = el)}
               type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
               maxLength={1}
               value={pin[index]}
               onChange={(e) => handlePinInput(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-16 h-20 text-3xl font-bold text-center rounded-2xl border-2 border-gray-200 bg-white shadow-sm focus:border-orange-400 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+              className="w-[60px] h-[72px] text-[32px] font-semibold text-center rounded-2xl border-0 bg-white shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition-all caret-transparent"
+              style={{ 
+                WebkitAppearance: 'none',
+                fontSize: '32px'
+              }}
               disabled={loading}
             />
           ))}
         </div>
 
         {error && (
-          <div className="text-rose-500 font-medium mb-4 animate-pulse">
+          <div className="text-rose-500 font-medium text-[15px] mb-4">
             {error}
           </div>
         )}
@@ -109,7 +116,7 @@ function PinScreen({ onSuccess }) {
         {loading && (
           <div className="flex items-center justify-center gap-2 text-gray-500">
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Checking...</span>
+            <span className="text-[15px]">Verifying...</span>
           </div>
         )}
       </div>
@@ -117,8 +124,8 @@ function PinScreen({ onSuccess }) {
   );
 }
 
-// Success Screen Component
-function SuccessScreen({ eventTitle, eventDate, onAddAnother }) {
+// Success Screen Component - iOS Style with Event Details
+function SuccessScreen({ eventData, onAddAnother }) {
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
@@ -136,57 +143,119 @@ function SuccessScreen({ eventTitle, eventDate, onAddAnother }) {
     return () => clearInterval(timer);
   }, [onAddAnother]);
 
+  const formatEventTime = () => {
+    if (eventData.isAllDay) return 'All day';
+    return `${eventData.startTimeFormatted} - ${eventData.endTimeFormatted}`;
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6">
-      <div className="w-full max-w-md text-center">
-        <div className="mb-6 relative">
-          <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full mx-auto flex items-center justify-center shadow-xl animate-bounce">
-            <Check className="w-12 h-12 text-white" strokeWidth={3} />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50 to-teal-50 px-6 safe-area-inset">
+      <div className="w-full max-w-sm text-center">
+        <div className="mb-8">
+          <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full mx-auto flex items-center justify-center shadow-xl">
+            <Check className="w-14 h-14 text-white" strokeWidth={3} />
           </div>
-          {/* Confetti-like decorations */}
-          <div className="absolute top-0 left-1/4 w-3 h-3 bg-yellow-400 rounded-full animate-ping" />
-          <div className="absolute top-8 right-1/4 w-2 h-2 bg-rose-400 rounded-full animate-ping delay-100" />
-          <div className="absolute bottom-0 left-1/3 w-2 h-2 bg-blue-400 rounded-full animate-ping delay-200" />
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Added! 🎉</h1>
+        <h1 className="text-[28px] font-semibold text-gray-900 mb-6 tracking-tight">Added! 🎉</h1>
         
-        <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-          <p className="text-gray-600 mb-2">Successfully added:</p>
-          <p className="text-xl font-semibold text-gray-800">{eventTitle}</p>
-          <p className="text-orange-500 font-medium mt-1">{eventDate}</p>
+        {/* Event Details Card */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6 text-left">
+          <div className="space-y-4">
+            <div>
+              <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Event</p>
+              <p className="text-[17px] font-semibold text-gray-900">{eventData.title}</p>
+            </div>
+            <div className="h-px bg-gray-100" />
+            <div>
+              <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Date</p>
+              <p className="text-[17px] text-gray-900">{eventData.dateFormatted}</p>
+            </div>
+            <div className="h-px bg-gray-100" />
+            <div>
+              <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Time</p>
+              <p className="text-[17px] text-gray-900">{formatEventTime()}</p>
+            </div>
+            {eventData.notes && (
+              <>
+                <div className="h-px bg-gray-100" />
+                <div>
+                  <p className="text-[13px] text-gray-500 uppercase tracking-wide mb-1">Notes</p>
+                  <p className="text-[15px] text-gray-700">{eventData.notes}</p>
+                </div>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* View in Google Calendar */}
+        {eventData.htmlLink && (
+          <a
+            href={eventData.htmlLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 text-[15px] text-blue-600 font-medium mb-6 active:opacity-70"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View in Google Calendar
+          </a>
+        )}
 
         <Button
           onClick={onAddAnother}
-          className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 text-white shadow-lg"
+          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
         >
           Add Another Event
         </Button>
 
-        <p className="text-gray-400 mt-4 text-sm">
-          Returning to form in {countdown}s...
+        <p className="text-gray-400 mt-5 text-[13px]">
+          Returning in {countdown}s
         </p>
       </div>
     </div>
   );
 }
 
-// Error Screen Component
+// Reconnect Screen - When Google auth expires
+function ReconnectScreen({ onReconnect }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-amber-50 to-orange-50 px-6 safe-area-inset">
+      <div className="w-full max-w-sm text-center">
+        <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-400 rounded-[22px] mx-auto mb-6 flex items-center justify-center shadow-lg">
+          <RefreshCw className="w-10 h-10 text-white" />
+        </div>
+
+        <h1 className="text-[24px] font-semibold text-gray-900 mb-3 tracking-tight">Reconnect Required</h1>
+        <p className="text-[15px] text-gray-500 mb-8 leading-relaxed">
+          Your Google Calendar connection has expired. This happens occasionally for security.
+        </p>
+
+        <Button
+          onClick={onReconnect}
+          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-[0.98] text-white shadow-lg transition-transform"
+        >
+          Reconnect Google Calendar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Error Screen Component - iOS Style
 function ErrorScreen({ message, onRetry }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-rose-50 via-pink-50 to-orange-50 p-6">
-      <div className="w-full max-w-md text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-pink-400 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-rose-50 to-pink-50 px-6 safe-area-inset">
+      <div className="w-full max-w-sm text-center">
+        <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-pink-400 rounded-[22px] mx-auto mb-6 flex items-center justify-center shadow-lg">
           <span className="text-4xl">😕</span>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops!</h1>
-        <p className="text-gray-600 mb-8 text-lg">{message || "Couldn't add that event."}</p>
+        <h1 className="text-[24px] font-semibold text-gray-900 mb-3 tracking-tight">Oops!</h1>
+        <p className="text-[15px] text-gray-500 mb-8">{message || "Could not add event. Please try again."}</p>
 
         <Button
           onClick={onRetry}
-          className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 text-white shadow-lg"
+          className="w-full h-[54px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg transition-transform"
         >
           <RefreshCw className="w-5 h-5 mr-2" />
           Try Again
@@ -196,8 +265,8 @@ function ErrorScreen({ message, onRetry }) {
   );
 }
 
-// Event Form Component
-function EventForm({ onSuccess, onError }) {
+// Event Form Component - iOS Native Style
+function EventForm({ onSuccess, onError, onNeedsReauth }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isAllDay, setIsAllDay] = useState(true);
@@ -211,16 +280,13 @@ function EventForm({ onSuccess, onError }) {
   const dayOfWeek = format(selectedDate, 'EEEE');
   const formattedDate = format(selectedDate, 'MMMM d, yyyy');
 
-  // Update end time when start time changes
   const handleStartTimeChange = (newStartTime) => {
     setStartTime(newStartTime);
-    // Set end time to 1 hour after start
     const [hours, minutes] = newStartTime.split(':').map(Number);
     const endHours = (hours + 1) % 24;
     setEndTime(`${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
   };
 
-  // Convert 24h to 12h format for display
   const formatTime12h = (time24) => {
     const [hours, minutes] = time24.split(':').map(Number);
     const period = hours >= 12 ? 'PM' : 'AM';
@@ -231,9 +297,7 @@ function EventForm({ onSuccess, onError }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!title.trim()) {
-      return;
-    }
+    if (!title.trim()) return;
 
     setLoading(true);
 
@@ -254,7 +318,16 @@ function EventForm({ onSuccess, onError }) {
       const data = await res.json();
 
       if (data.success) {
-        onSuccess(title, `${dayOfWeek}, ${formattedDate}`);
+        onSuccess({
+          title: title.trim(),
+          date,
+          dateFormatted: `${dayOfWeek}, ${formattedDate}`,
+          isAllDay,
+          startTimeFormatted: formatTime12h(startTime),
+          endTimeFormatted: formatTime12h(endTime),
+          notes: notes.trim(),
+          htmlLink: data.event?.htmlLink,
+        });
         // Reset form
         setTitle('');
         setDate(format(new Date(), 'yyyy-MM-dd'));
@@ -263,164 +336,157 @@ function EventForm({ onSuccess, onError }) {
         setEndTime('10:00');
         setNotes('');
         setShowNotes(false);
+      } else if (data.needsReauth) {
+        onNeedsReauth();
       } else {
         onError(data.message);
       }
     } catch (err) {
-      onError('Something went wrong. Please try again.');
+      onError('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-4 pb-8">
-      <div className="max-w-lg mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 safe-area-inset">
+      <div className="max-w-lg mx-auto px-4 pb-8">
         {/* Header */}
-        <div className="text-center pt-6 pb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-rose-400 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg">
+        <div className="text-center pt-8 pb-6">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-rose-400 rounded-[18px] mx-auto mb-4 flex items-center justify-center shadow-lg">
             <Calendar className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Add Event</h1>
+          <h1 className="text-[24px] font-semibold text-gray-900 tracking-tight">Add Event</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-base font-medium text-gray-700">
-              What's happening?
-            </Label>
-            <Input
-              id="title"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title - iOS Style Input */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <input
               type="text"
-              placeholder="e.g., Doctor appointment"
+              placeholder="What's happening?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="h-14 text-lg rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 bg-white"
+              className="w-full h-[56px] px-4 text-[17px] text-gray-900 placeholder-gray-400 border-0 focus:ring-0 outline-none"
+              style={{ fontSize: '17px' }}
               required
             />
           </div>
 
-          {/* Date */}
-          <div className="space-y-2">
-            <Label htmlFor="date" className="text-base font-medium text-gray-700">
-              When?
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-14 text-lg rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 bg-white"
-              required
-            />
-            {date && (
-              <p className="text-orange-500 font-medium pl-1">
-                {dayOfWeek}, {formattedDate}
-              </p>
-            )}
-          </div>
-
-          {/* All Day Toggle */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border-2 border-gray-100">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="allDay" className="text-base font-medium text-gray-700 cursor-pointer">
-                All day event
-              </Label>
-              <Switch
-                id="allDay"
-                checked={isAllDay}
-                onCheckedChange={setIsAllDay}
-                className="data-[state=checked]:bg-orange-400"
+          {/* Date - iOS Style */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3">
+              <label className="text-[13px] text-gray-500 uppercase tracking-wide">Date</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full h-[44px] text-[17px] text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
+                style={{ fontSize: '17px' }}
+                required
               />
             </div>
-
-            {/* Time Pickers (shown when not all day) */}
-            {!isAllDay && (
-              <div className="mt-5 pt-5 border-t border-gray-100 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startTime" className="text-sm font-medium text-gray-600">
-                    Start time
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="startTime"
-                      type="time"
-                      value={startTime}
-                      onChange={(e) => handleStartTimeChange(e.target.value)}
-                      className="h-12 text-lg rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 bg-white"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
-                      {formatTime12h(startTime)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endTime" className="text-sm font-medium text-gray-600">
-                    End time
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="endTime"
-                      type="time"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      className="h-12 text-lg rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 bg-white"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
-                      {formatTime12h(endTime)}
-                    </span>
-                  </div>
-                </div>
+            {date && (
+              <div className="px-4 pb-3 -mt-1">
+                <span className="text-[15px] text-orange-500 font-medium">{dayOfWeek}, {formattedDate}</span>
               </div>
             )}
           </div>
 
-          {/* Notes (Expandable) */}
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => setShowNotes(!showNotes)}
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              {showNotes ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-              <span className="text-base font-medium">
-                {showNotes ? 'Hide notes' : 'Add notes'}
-              </span>
-            </button>
-
-            {showNotes && (
-              <Textarea
-                placeholder="Any details?"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[100px] text-lg rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 bg-white resize-none"
+          {/* All Day Toggle - iOS Style */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-4 h-[56px]">
+              <span className="text-[17px] text-gray-900">All day</span>
+              <Switch
+                checked={isAllDay}
+                onCheckedChange={setIsAllDay}
+                className="data-[state=checked]:bg-orange-400 scale-110"
               />
+            </div>
+
+            {/* Time Pickers - iOS Style */}
+            {!isAllDay && (
+              <>
+                <div className="h-px bg-gray-100 mx-4" />
+                <div className="px-4 py-4 space-y-4">
+                  <div>
+                    <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Starts</label>
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => handleStartTimeChange(e.target.value)}
+                        className="flex-1 h-[44px] text-[17px] text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
+                        style={{ fontSize: '17px' }}
+                      />
+                      <span className="text-[15px] text-gray-500 ml-4">{formatTime12h(startTime)}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[13px] text-gray-500 uppercase tracking-wide block mb-2">Ends</label>
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className="flex-1 h-[44px] text-[17px] text-gray-900 border-0 focus:ring-0 outline-none bg-transparent"
+                        style={{ fontSize: '17px' }}
+                      />
+                      <span className="text-[15px] text-gray-500 ml-4">{formatTime12h(endTime)}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={loading || !title.trim()}
-            className="w-full h-16 text-xl font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 text-white shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {loading ? (
+          {/* Notes - iOS Style Expandable */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowNotes(!showNotes)}
+              className="w-full flex items-center justify-between px-4 h-[56px] active:bg-gray-50"
+            >
+              <span className="text-[17px] text-gray-900">Notes</span>
+              {showNotes ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {showNotes && (
               <>
-                <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                Adding...
-              </>
-            ) : (
-              <>
-                Add to Calendar 📅
+                <div className="h-px bg-gray-100 mx-4" />
+                <textarea
+                  placeholder="Any details?"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full px-4 py-3 text-[17px] text-gray-900 placeholder-gray-400 border-0 focus:ring-0 outline-none resize-none"
+                  rows={3}
+                  style={{ fontSize: '17px' }}
+                />
               </>
             )}
-          </Button>
+          </div>
+
+          {/* Submit Button - iOS Style */}
+          <div className="pt-4">
+            <Button
+              type="submit"
+              disabled={loading || !title.trim()}
+              className="w-full h-[56px] text-[17px] font-semibold rounded-2xl bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-transform"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add to Calendar 📅'
+              )}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
@@ -431,11 +497,10 @@ function EventForm({ onSuccess, onError }) {
 export default function FamilyCalendar() {
   const [screen, setScreen] = useState('loading');
   const [authenticated, setAuthenticated] = useState(false);
-  const [successData, setSuccessData] = useState({ title: '', date: '' });
+  const [eventData, setEventData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Check if already authenticated
     const auth = localStorage.getItem('family_calendar_auth');
     if (auth) {
       try {
@@ -445,9 +510,7 @@ export default function FamilyCalendar() {
           setScreen('form');
           return;
         }
-      } catch (e) {
-        // Invalid auth data
-      }
+      } catch (e) {}
     }
     setScreen('pin');
   }, []);
@@ -457,8 +520,8 @@ export default function FamilyCalendar() {
     setScreen('form');
   };
 
-  const handleEventSuccess = (title, date) => {
-    setSuccessData({ title, date });
+  const handleEventSuccess = (data) => {
+    setEventData(data);
     setScreen('success');
   };
 
@@ -467,16 +530,24 @@ export default function FamilyCalendar() {
     setScreen('error');
   };
 
+  const handleNeedsReauth = () => {
+    setScreen('reconnect');
+  };
+
+  const handleReconnect = () => {
+    window.location.href = '/setup';
+  };
+
   const handleReturnToForm = () => {
     setScreen('form');
-    setSuccessData({ title: '', date: '' });
+    setEventData(null);
     setErrorMessage('');
   };
 
   if (screen === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
-        <Loader2 className="w-10 h-10 text-orange-400 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
+        <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
       </div>
     );
   }
@@ -488,16 +559,19 @@ export default function FamilyCalendar() {
   if (screen === 'success') {
     return (
       <SuccessScreen
-        eventTitle={successData.title}
-        eventDate={successData.date}
+        eventData={eventData}
         onAddAnother={handleReturnToForm}
       />
     );
+  }
+
+  if (screen === 'reconnect') {
+    return <ReconnectScreen onReconnect={handleReconnect} />;
   }
 
   if (screen === 'error') {
     return <ErrorScreen message={errorMessage} onRetry={handleReturnToForm} />;
   }
 
-  return <EventForm onSuccess={handleEventSuccess} onError={handleError} />;
+  return <EventForm onSuccess={handleEventSuccess} onError={handleError} onNeedsReauth={handleNeedsReauth} />;
 }

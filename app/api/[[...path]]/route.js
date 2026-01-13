@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getOAuthUrl, exchangeCodeForTokens, storeRefreshToken, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
+import { getOAuthUrl, exchangeCodeForTokens, storeRefreshToken, getStoredRefreshToken, createCalendarEvent, clearRefreshToken } from '@/lib/googleCalendar';
 
 // CORS headers
 const corsHeaders = {
@@ -139,9 +139,14 @@ export async function POST(request, { params }) {
       } catch (err) {
         console.error('Calendar error:', err);
         
-        if (err.message === 'NO_REFRESH_TOKEN') {
+        // Handle specific error codes for auto-reconnect
+        if (err.code === 'NO_REFRESH_TOKEN' || err.code === 'TOKEN_EXPIRED') {
           return NextResponse.json(
-            { success: false, message: 'Google Calendar not connected. Please run setup.' },
+            { 
+              success: false, 
+              message: 'Google Calendar connection expired. Please reconnect.',
+              needsReauth: true 
+            },
             { status: 401, headers: corsHeaders }
           );
         }
