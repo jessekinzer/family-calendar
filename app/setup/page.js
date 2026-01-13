@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar, Check, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, Check, Loader2, AlertCircle, Copy, CheckCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -10,10 +10,19 @@ function SetupContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState('checking');
   const [error, setError] = useState('');
+  const [token, setToken] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const success = searchParams.get('success');
     const errorParam = searchParams.get('error');
+    const tokenParam = searchParams.get('token');
+
+    if (tokenParam) {
+      setToken(tokenParam);
+      setStatus('show_token');
+      return;
+    }
 
     if (success === 'true') {
       setStatus('connected');
@@ -43,11 +52,71 @@ function SetupContent() {
     window.location.href = '/api/auth/google';
   };
 
+  const copyToken = async () => {
+    await navigator.clipboard.writeText(token);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (status === 'checking') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
         <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
         <p className="mt-3 text-sm text-gray-500">Checking connection...</p>
+      </div>
+    );
+  }
+
+  // Show token for user to copy
+  if (status === 'show_token') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="w-12 h-12 bg-emerald-100 rounded-full mx-auto mb-5 flex items-center justify-center">
+            <Check className="w-6 h-6 text-emerald-600" strokeWidth={2.5} />
+          </div>
+
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Almost done!</h1>
+          <p className="text-gray-500 text-sm mb-6">
+            Copy this token and add it to your Vercel environment variables.
+          </p>
+
+          {/* Token display */}
+          <div className="bg-gray-50 rounded-lg p-3 mb-4 border border-gray-200">
+            <p className="text-xs text-gray-500 mb-2">GOOGLE_REFRESH_TOKEN</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-xs text-gray-700 break-all text-left bg-white p-2 rounded border">
+                {token}
+              </code>
+              <Button
+                onClick={copyToken}
+                variant="outline"
+                size="sm"
+                className="flex-shrink-0"
+              >
+                {copied ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* Instructions */}
+          <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left border border-blue-100">
+            <p className="text-xs font-medium text-blue-800 mb-2">Next steps:</p>
+            <ol className="text-sm text-blue-700 space-y-1.5 list-decimal list-inside">
+              <li>Go to Vercel → Project Settings → Environment Variables</li>
+              <li>Add variable: <code className="bg-blue-100 px-1 rounded">GOOGLE_REFRESH_TOKEN</code></li>
+              <li>Paste the token above as the value</li>
+              <li>Redeploy your app</li>
+            </ol>
+          </div>
+
+          <Button
+            onClick={() => window.location.href = '/'}
+            className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
+          >
+            Done - Go to app
+          </Button>
+        </div>
       </div>
     );
   }
@@ -112,24 +181,6 @@ function SetupContent() {
           One-time setup to enable adding events.
         </p>
 
-        <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left border border-gray-100">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">What happens next</p>
-          <div className="space-y-2.5">
-            <div className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">1</span>
-              <span className="text-sm text-gray-600">Sign in with Google</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">2</span>
-              <span className="text-sm text-gray-600">Grant calendar access</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">3</span>
-              <span className="text-sm text-gray-600">Return here</span>
-            </div>
-          </div>
-        </div>
-
         <Button
           onClick={handleConnect}
           className="w-full h-11 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-2"
@@ -144,7 +195,7 @@ function SetupContent() {
         </Button>
 
         <p className="text-xs text-gray-400 mt-6">
-          Your wife won't need to do this.
+          You'll get a token to add to your Vercel settings.
         </p>
       </div>
     </div>
