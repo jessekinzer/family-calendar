@@ -1,119 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Calendar, Check, ChevronDown, ChevronUp, Loader2, RefreshCw, ExternalLink, Clock } from 'lucide-react';
-import { format, parse } from 'date-fns';
-
-// PIN Entry Screen - Notion Style
-function PinScreen({ onSuccess }) {
-  const [pin, setPin] = useState(['', '', '', '']);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const inputRefs = useRef([]);
-
-  useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
-
-  const handlePinInput = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
-    
-    const newPin = [...pin];
-    newPin[index] = value.slice(-1);
-    setPin(newPin);
-    setError('');
-
-    if (value && index < 3) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    if (value && index === 3 && newPin.every(d => d !== '')) {
-      verifyPin(newPin.join(''));
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !pin[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const verifyPin = async (pinCode) => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/verify-pin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: pinCode }),
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        localStorage.setItem('family_calendar_auth', JSON.stringify({
-          authenticated: true,
-          expires: Date.now() + (7 * 24 * 60 * 60 * 1000)
-        }));
-        onSuccess();
-      } else {
-        setError('Incorrect PIN');
-        setPin(['', '', '', '']);
-        inputRefs.current[0]?.focus();
-        if (navigator.vibrate) navigator.vibrate(100);
-      }
-    } catch (err) {
-      setError('Connection error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 safe-area-inset">
-      <div className="w-full max-w-xs text-center">
-        <div className="mb-10">
-          <div className="w-14 h-14 bg-gray-100 rounded-xl mx-auto mb-5 flex items-center justify-center">
-            <Calendar className="w-7 h-7 text-gray-600" />
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Family Calendar</h1>
-          <p className="text-gray-500">Enter your PIN</p>
-        </div>
-
-        <div className="flex justify-center gap-3 mb-6">
-          {[0, 1, 2, 3].map((index) => (
-            <input
-              key={index}
-              ref={(el) => (inputRefs.current[index] = el)}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={1}
-              value={pin[index]}
-              onChange={(e) => handlePinInput(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-14 h-16 text-2xl font-semibold text-center rounded-lg border border-gray-200 bg-gray-50 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-              style={{ WebkitAppearance: 'none', fontSize: '24px' }}
-              disabled={loading}
-            />
-          ))}
-        </div>
-
-        {error && (
-          <div className="text-red-500 text-sm mb-4">{error}</div>
-        )}
-
-        {loading && (
-          <div className="flex items-center justify-center gap-2 text-gray-500">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">Verifying...</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+import { Calendar, Check, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
+import { format } from 'date-fns';
+import { parseQuickAdd } from '@/lib/quickAddParser';
 
 // Success Screen - Notion Style
 function SuccessScreen({ eventData, onAddAnother }) {
@@ -254,38 +145,32 @@ function ErrorScreen({ message, onRetry }) {
   );
 }
 
-// Event Form - Notion Style
-function EventForm({ onSuccess, onError, onNeedsReauth }) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [isAllDay, setIsAllDay] = useState(false);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
-  const [notes, setNotes] = useState('');
-  const [showNotes, setShowNotes] = useState(false);
+// Quick Add Form - Notion Style
+function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const selectedDate = parse(date, 'yyyy-MM-dd', new Date());
-  const dayOfWeek = format(selectedDate, 'EEEE');
-  const formattedDate = format(selectedDate, 'MMMM d, yyyy');
-
-  const handleStartTimeChange = (newStartTime) => {
-    setStartTime(newStartTime);
-    const [hours, minutes] = newStartTime.split(':').map(Number);
-    const endHours = (hours + 1) % 24;
-    setEndTime(`${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
-  };
+  const parsed = parseQuickAdd(input);
 
   const formatTime12h = (time24) => {
+    if (!time24) return '';
     const [hours, minutes] = time24.split(':').map(Number);
     const period = hours >= 12 ? 'PM' : 'AM';
     const hours12 = hours % 12 || 12;
     return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
+  const formattedDate = parsed.date
+    ? format(parsed.date, 'EEEE, MMMM d')
+    : 'Add a date (e.g., Sunday or Feb 8)';
+  const formattedTime = parsed.isAllDay
+    ? 'All day'
+    : parsed.startTime
+      ? `${formatTime12h(parsed.startTime)}${parsed.endTime ? ` – ${formatTime12h(parsed.endTime)}` : ''}`
+      : 'Add a time (optional)';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!parsed.title || !parsed.date) return;
 
     setLoading(true);
 
@@ -294,12 +179,12 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: title.trim(),
-          date,
-          startTime: isAllDay ? null : startTime,
-          endTime: isAllDay ? null : endTime,
-          notes: notes.trim(),
-          isAllDay,
+          title: parsed.title,
+          date: format(parsed.date, 'yyyy-MM-dd'),
+          startTime: parsed.isAllDay ? null : parsed.startTime,
+          endTime: parsed.isAllDay ? null : parsed.endTime,
+          notes: '',
+          isAllDay: parsed.isAllDay,
         }),
       });
 
@@ -307,22 +192,16 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
 
       if (data.success) {
         onSuccess({
-          title: title.trim(),
-          date,
-          dateFormatted: `${dayOfWeek}, ${formattedDate}`,
-          isAllDay,
-          startTimeFormatted: formatTime12h(startTime),
-          endTimeFormatted: formatTime12h(endTime),
-          notes: notes.trim(),
+          title: parsed.title,
+          date: format(parsed.date, 'yyyy-MM-dd'),
+          dateFormatted: format(parsed.date, 'EEEE, MMMM d, yyyy'),
+          isAllDay: parsed.isAllDay,
+          startTimeFormatted: formatTime12h(parsed.startTime),
+          endTimeFormatted: formatTime12h(parsed.endTime),
+          notes: '',
           htmlLink: data.event?.htmlLink,
         });
-        setTitle('');
-        setDate(format(new Date(), 'yyyy-MM-dd'));
-        setIsAllDay(false);
-        setStartTime('09:00');
-        setEndTime('10:00');
-        setNotes('');
-        setShowNotes(false);
+        setInput('');
       } else if (data.needsReauth) {
         onNeedsReauth();
       } else {
@@ -337,9 +216,9 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
 
   return (
     <div className="min-h-screen bg-white safe-area-inset">
-      <div className="max-w-lg mx-auto px-4 pb-8">
+      <div className="max-w-lg mx-auto px-4 pb-10">
         {/* Header */}
-        <div className="pt-8 pb-6">
+        <div className="pt-8 pb-5">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-4 h-4 text-gray-600" />
@@ -348,129 +227,41 @@ function EventForm({ onSuccess, onError, onNeedsReauth }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Quick Add Input */}
           <div>
-            <input
-              type="text"
-              placeholder="Event name"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full h-12 px-3 text-base text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-              style={{ fontSize: '16px' }}
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">Quick add</label>
+            <textarea
+              placeholder="Cousins' birthday party on Sunday at 8pm"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="w-full min-h-[140px] px-4 py-4 text-xl font-semibold text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
+              style={{ fontSize: '20px', lineHeight: '1.4' }}
+              autoFocus
               required
             />
+            <p className="text-xs text-gray-400 mt-2">Try: “Dentist next Tuesday at 9am” or “School pickup tomorrow”</p>
           </div>
 
-          {/* Date */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1.5">Date</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full h-12 px-3 text-base text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                style={{ fontSize: '16px' }}
-                required
-              />
-            </div>
-            {date && (
-              <p className="text-sm text-blue-600 mt-1.5">{dayOfWeek}, {formattedDate}</p>
-            )}
-          </div>
-
-          {/* Time Section */}
-          <div className="space-y-3">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">Time</label>
-            
-            {!isAllDay && (
-              <div className="grid grid-cols-2 gap-3">
-                {/* Start Time */}
-                <div>
-                  <p className="text-xs text-gray-500 mb-1.5">Starts</p>
-                  <label className="relative block cursor-pointer">
-                    <div className="flex items-center justify-between h-12 px-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-base font-medium text-gray-900">{formatTime12h(startTime)}</span>
-                      </div>
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </div>
-                    <input
-                      type="time"
-                      value={startTime}
-                      onChange={(e) => handleStartTimeChange(e.target.value)}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </label>
-                </div>
-
-                {/* End Time */}
-                <div>
-                  <p className="text-xs text-gray-500 mb-1.5">Ends</p>
-                  <label className="relative block cursor-pointer">
-                    <div className="flex items-center justify-between h-12 px-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-base font-medium text-gray-900">{formatTime12h(endTime)}</span>
-                      </div>
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </div>
-                    <input
-                      type="time"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* All Day Toggle */}
-            <div className="flex items-center justify-between h-12 px-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <span className="text-base text-gray-700">All day</span>
-              <Switch
-                checked={isAllDay}
-                onCheckedChange={setIsAllDay}
-                className="data-[state=checked]:bg-blue-600"
-              />
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowNotes(!showNotes)}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              {showNotes ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-              {showNotes ? 'Hide notes' : 'Add notes'}
-            </button>
-
-            {showNotes && (
-              <textarea
-                placeholder="Add details..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full mt-2 px-3 py-3 text-base text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none transition-all"
-                rows={3}
-                style={{ fontSize: '16px' }}
-              />
-            )}
+          {/* Parsed Preview */}
+          <div className="bg-gray-50 rounded-xl border border-gray-100 px-4 py-4">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Preview</p>
+            <p className="text-base font-semibold text-gray-900">
+              {parsed.title || 'Add an event description'}
+            </p>
+            <p className={`text-sm mt-1 ${parsed.date ? 'text-gray-700' : 'text-amber-600'}`}>
+              {formattedDate}
+            </p>
+            <p className={`text-sm ${parsed.isAllDay ? 'text-gray-700' : parsed.startTime ? 'text-gray-700' : 'text-gray-400'}`}>
+              {formattedTime}
+            </p>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-2">
+          <div>
             <Button
               type="submit"
-              disabled={loading || !title.trim()}
+              disabled={loading || !parsed.title || !parsed.date}
               className="w-full h-12 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors"
             >
               {loading ? (
@@ -496,20 +287,9 @@ export default function FamilyCalendar() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const auth = localStorage.getItem('family_calendar_auth');
-    if (auth) {
-      try {
-        const { authenticated, expires } = JSON.parse(auth);
-        if (authenticated && expires > Date.now()) {
-          setScreen('form');
-          return;
-        }
-      } catch (e) {}
-    }
-    setScreen('pin');
+    setScreen('form');
   }, []);
 
-  const handlePinSuccess = () => setScreen('form');
   const handleEventSuccess = (data) => { setEventData(data); setScreen('success'); };
   const handleError = (message) => { setErrorMessage(message); setScreen('error'); };
   const handleNeedsReauth = () => setScreen('reconnect');
@@ -524,10 +304,9 @@ export default function FamilyCalendar() {
     );
   }
 
-  if (screen === 'pin') return <PinScreen onSuccess={handlePinSuccess} />;
   if (screen === 'success') return <SuccessScreen eventData={eventData} onAddAnother={handleReturnToForm} />;
   if (screen === 'reconnect') return <ReconnectScreen onReconnect={handleReconnect} />;
   if (screen === 'error') return <ErrorScreen message={errorMessage} onRetry={handleReturnToForm} />;
 
-  return <EventForm onSuccess={handleEventSuccess} onError={handleError} onNeedsReauth={handleNeedsReauth} />;
+  return <QuickAddForm onSuccess={handleEventSuccess} onError={handleError} onNeedsReauth={handleNeedsReauth} />;
 }
