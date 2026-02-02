@@ -15,9 +15,20 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   // Only cache GET requests
   if (event.request.method !== 'GET') return;
-  
+  let requestUrl;
+  try {
+    requestUrl = new URL(event.request.url);
+  } catch (error) {
+    return;
+  }
+
+  if (!['http:', 'https:'].includes(requestUrl.protocol)) {
+    return;
+  }
+
   // Skip API calls - always fetch fresh
   if (event.request.url.includes('/api/')) return;
+  if (requestUrl.origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(event.request)
