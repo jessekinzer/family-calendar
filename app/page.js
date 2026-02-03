@@ -104,11 +104,29 @@ function ErrorScreen({ message, onRetry }) {
 
 // Quick Add Form - Single Purpose
 function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
+  const quotes = [
+    `"Life's short, talk fast." - Lorelai`,
+    '"Oy with the poodles already!" - Lorelai',
+    '"I smell snow." - Lorelai',
+    '"Nothing excites me before 11:00." - Rory',
+    '"Coffee first, talk later." - Lorelai',
+    '"People can live for a hundred years without living a minute." - Logan',
+    '"I need caffeine in any form." - Lorelai',
+    '"Who cares if I\'m pretty if I fail my finals?" - Rory',
+    '"It depends on what I have going on that week." - Rory',
+    '"I don\'t like Mondays." - Lorelai',
+    '"The room smells like guilt and Chanel No. 5." - Lorelai',
+    '"Everything in my life has something to do with coffee." - Lorelai',
+    '"In omnia paratus." - Logan',
+    '"Every relationship is just a big honking leap of faith." - Lorelai',
+    '"You\'ve got wings, baby." - Lorelai',
+  ];
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyboardInset, setKeyboardInset] = useState(0);
   const inputRef = useRef(null);
   const parsed = parseQuickAdd(input);
+  const placeholder = useState(() => quotes[Math.floor(Math.random() * quotes.length)])[0];
 
   const formatTime12h = (time24) => {
     if (!time24) return '';
@@ -246,12 +264,12 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
               aria-label={loading ? 'Adding event' : 'Add event'}
-              className="fixed right-6 z-30 h-[60px] w-[60px] text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
+              className="fixed right-6 z-30 h-[60px] w-[60px] text-base font-medium rounded-full bg-gray-950 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
             >
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </Button>
             <textarea
-              placeholder="Dinner with Mom Friday at 7pm"
+              placeholder={placeholder}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
