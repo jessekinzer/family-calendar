@@ -172,13 +172,13 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
 
   return (
     <div className="min-h-screen bg-[#f6f4f2] safe-area-inset">
-      <div className="max-w-lg mx-auto px-5 pb-8 min-h-screen flex flex-col">
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 pt-8">
+      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-6 min-h-screen flex flex-col">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 pt-6 sm:pt-8">
           <div className="flex-1 relative">
             <Button
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
-              className="absolute right-4 top-4 h-9 px-4 text-sm font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors"
+              className="absolute right-4 top-4 sm:right-6 sm:top-6 h-9 px-4 text-sm font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors"
             >
               {loading ? 'Sending…' : 'Send'}
             </Button>
@@ -187,7 +187,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
-              className="w-full h-full min-h-[420px] px-5 py-6 pr-24 text-[2.5rem] font-semibold text-gray-900 placeholder:text-[#A5A5A5] bg-[#EBEBEB] border-none rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none"
+              className="w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-semibold text-gray-900 placeholder:text-[#A5A5A5] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none"
               style={{ lineHeight: '1.4' }}
               autoFocus
               required
