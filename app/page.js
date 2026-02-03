@@ -222,7 +222,6 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.location.hash !== '#focus') return;
     const focusInput = () => inputRef.current?.focus({ preventScroll: true });
     const focusDelay = window.setTimeout(focusInput, 150);
     return () => window.clearTimeout(focusDelay);
