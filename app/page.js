@@ -118,38 +118,31 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
 
   const renderHighlightedText = (value) => {
     if (!value) return null;
-    const timeRegex = /\b\d{1,2}(?::\d{2})?\s?(?:am|pm)?\b/gi;
-    const dateRegex = /\b(?:today|tomorrow|tonight|next\s+\w+|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?|jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|\d{1,2}(?:st|nd|rd|th)?)\b/gi;
-    const combinedRegex = new RegExp(
-      `${dateRegex.source}|${timeRegex.source}`,
-      'gi'
-    );
-
-    const segments = [];
-    let lastIndex = 0;
-    let match;
-    while ((match = combinedRegex.exec(value)) !== null) {
-      const start = match.index;
-      const end = combinedRegex.lastIndex;
-      if (start > lastIndex) {
-        segments.push({ text: value.slice(lastIndex, start), highlight: false });
-      }
-      segments.push({ text: value.slice(start, end), highlight: true });
-      lastIndex = end;
-    }
-    if (lastIndex < value.length) {
-      segments.push({ text: value.slice(lastIndex), highlight: false });
+    const matchText = parsed.matchText;
+    if (!matchText) {
+      return <span>{value}</span>;
     }
 
-    return segments.map((segment, index) => (
-      segment.highlight ? (
-        <span key={`${segment.text}-${index}`} className="rounded-[6px] bg-[#D9D9D9] px-1 py-0.5">
-          {segment.text}
+    const lowerValue = value.toLowerCase();
+    const lowerMatch = matchText.toLowerCase();
+    const matchIndex = lowerValue.indexOf(lowerMatch);
+    if (matchIndex === -1) {
+      return <span>{value}</span>;
+    }
+
+    const before = value.slice(0, matchIndex);
+    const highlighted = value.slice(matchIndex, matchIndex + matchText.length);
+    const after = value.slice(matchIndex + matchText.length);
+
+    return (
+      <>
+        {before && <span>{before}</span>}
+        <span className="rounded-[6px] bg-[#D9D9D9] px-1 py-0.5">
+          {highlighted}
         </span>
-      ) : (
-        <span key={`${segment.text}-${index}`}>{segment.text}</span>
-      )
-    ));
+        {after && <span>{after}</span>}
+      </>
+    );
   };
 
   const handleSubmit = async (e) => {
