@@ -193,6 +193,22 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               required
               aria-label="Describe your event in plain language"
             />
+            {(parsed.date || parsed.startTime || parsed.isAllDay) && (
+              <div className="mt-4 flex flex-wrap gap-2 text-sm text-gray-600">
+                {parsed.date && (
+                  <span className="rounded-full bg-gray-200/80 px-3 py-1 text-gray-700">
+                    {format(parsed.date, 'EEE, MMM d')}
+                  </span>
+                )}
+                {(parsed.isAllDay || parsed.startTime) && (
+                  <span className="rounded-full bg-gray-200/80 px-3 py-1 text-gray-700">
+                    {parsed.isAllDay
+                      ? 'All day'
+                      : `${formatTime12h(parsed.startTime)}${parsed.endTime ? ` – ${formatTime12h(parsed.endTime)}` : ''}`}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </form>
       </div>
