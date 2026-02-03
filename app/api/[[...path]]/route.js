@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  getOAuthUrl,
-  exchangeCodeForTokens,
-  getStoredRefreshToken,
-  createCalendarEvent,
-} from '@/lib/googleCalendar';
+import { getOAuthUrl, exchangeCodeForTokens, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
 
 // CORS headers
 const corsHeaders = {
@@ -13,20 +8,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const getBaseUrl = (requestUrl) => {
-  return process.env.NEXT_PUBLIC_BASE_URL || new URL(requestUrl).origin || 'http://localhost:3000';
-};
-
-// Handle OPTIONS for CORS
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
-/**
- * Handle GET requests for health checks and OAuth flow.
- * @param {Request} request
- * @param {{ params?: { path?: string[] } }} context
- */
 export async function GET(request, { params }) {
   const path = params?.path?.join('/') || '';
   
@@ -36,9 +21,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() }, { headers: corsHeaders });
     }
 
-    // Check if refresh token exists
+    // Check if refresh token exists in env
     if (path === 'auth/status') {
-      const token = await getStoredRefreshToken();
+      const token = getStoredRefreshToken();
       return NextResponse.json({ 
         authenticated: !!token,
         message: token ? 'Google Calendar is connected!' : 'Setup required'
@@ -51,12 +36,12 @@ export async function GET(request, { params }) {
       return NextResponse.redirect(authUrl);
     }
 
-    // Google OAuth callback
+    // Google OAuth callback - NOW SHOWS TOKEN TO COPY
     if (path === 'auth/google/callback') {
       const url = new URL(request.url);
       const code = url.searchParams.get('code');
       const error = url.searchParams.get('error');
-      const baseUrl = getBaseUrl(request.url);
+      const baseUrl = new URL(request.url).origin;
 
       if (error) {
         return NextResponse.redirect(`${baseUrl}/setup?error=${encodeURIComponent(error)}`);
@@ -70,10 +55,11 @@ export async function GET(request, { params }) {
         const tokens = await exchangeCodeForTokens(code);
 
         if (tokens.refresh_token) {
+          // Redirect to setup page with the token to display
           return NextResponse.redirect(`${baseUrl}/setup?token=${encodeURIComponent(tokens.refresh_token)}`);
+        } else {
+          return NextResponse.redirect(`${baseUrl}/setup?error=no_refresh_token`);
         }
-
-        return NextResponse.redirect(`${baseUrl}/setup?error=no_refresh_token`);
       } catch (err) {
         console.error('OAuth callback error:', err);
         return NextResponse.redirect(`${baseUrl}/setup?error=${encodeURIComponent(err.message)}`);
@@ -115,7 +101,6 @@ export async function POST(request, { params }) {
       const body = await request.json();
       const { title, date, startTime, endTime, notes, isAllDay } = body;
 
-      // Validate required fields
       if (!title || !date) {
         return NextResponse.json(
           { success: false, message: 'Title and date are required' },
@@ -123,7 +108,6 @@ export async function POST(request, { params }) {
         );
       }
 
-      // Validate time fields if not all-day
       if (!isAllDay && (!startTime || !endTime)) {
         return NextResponse.json(
           { success: false, message: 'Start and end times are required for timed events' },
@@ -149,7 +133,6 @@ export async function POST(request, { params }) {
       } catch (err) {
         console.error('Calendar error:', err);
         
-        // Handle specific error codes for auto-reconnect
         if (err.code === 'NO_REFRESH_TOKEN' || err.code === 'TOKEN_EXPIRED') {
           return NextResponse.json(
             { 
@@ -162,7 +145,7 @@ export async function POST(request, { params }) {
         }
 
         return NextResponse.json(
-          { success: false, message: 'Could not add event. Please try again.' },
+          { success: false, message: `Could not add event. Please try again. ${err}` },
           { status: 500, headers: corsHeaders }
         );
       }
