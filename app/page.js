@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, Check, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
@@ -149,6 +149,8 @@ function ErrorScreen({ message, onRetry }) {
 function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showInstallTip, setShowInstallTip] = useState(false);
+  const inputRef = useRef(null);
   const parsed = parseQuickAdd(input);
 
   const formatTime12h = (time24) => {
@@ -214,9 +216,51 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
     }
   };
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const shouldFocus = params.get('focus') === '1';
+    if (shouldFocus && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const dismissed = window.localStorage.getItem('family_calendar_install_tip');
+    if (dismissed) return;
+
+    const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    if (isIos && !isStandalone) {
+      setShowInstallTip(true);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-white safe-area-inset">
       <div className="max-w-lg mx-auto px-4 pb-10">
+        {showInstallTip && (
+          <div className="mt-6 mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">Add to Home Screen</p>
+                <p className="text-blue-800">
+                  Tap Share in Safari, then “Add to Home Screen” for one‑tap access.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  window.localStorage.setItem('family_calendar_install_tip', '1');
+                  setShowInstallTip(false);
+                }}
+                className="text-blue-700 hover:text-blue-900"
+                aria-label="Dismiss add to home screen tip"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="pt-8 pb-5">
           <div className="flex items-center gap-3 mb-1">
@@ -235,6 +279,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               placeholder="Cousins' birthday party on Sunday at 8pm"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              ref={inputRef}
               className="w-full min-h-[140px] px-4 py-4 text-xl font-semibold text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
               style={{ fontSize: '20px', lineHeight: '1.4' }}
               autoFocus
