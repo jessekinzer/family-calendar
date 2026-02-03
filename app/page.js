@@ -187,7 +187,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
-              className="w-full h-full min-h-[420px] px-5 py-6 pr-24 text-[2.5rem] font-semibold text-gray-900 placeholder-gray-400 bg-gray-100/80 border-none rounded-[32px] shadow-sm focus:bg-gray-100 focus:ring-2 focus:ring-white/70 outline-none transition-all resize-none"
+              className="w-full h-full min-h-[420px] px-5 py-6 pr-24 text-[2.5rem] font-semibold text-gray-900 placeholder:text-[#A5A5A5] bg-[#EBEBEB] border-none rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none"
               style={{ lineHeight: '1.4' }}
               autoFocus
               required
