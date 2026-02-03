@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getOAuthUrl, exchangeCodeForTokens, storeRefreshToken, getStoredRefreshToken, createCalendarEvent, clearRefreshToken } from '@/lib/googleCalendar';
+import {
+  getOAuthUrl,
+  exchangeCodeForTokens,
+  getStoredRefreshToken,
+  createCalendarEvent,
+} from '@/lib/googleCalendar';
 
 // CORS headers
 const corsHeaders = {
@@ -8,12 +13,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+const getBaseUrl = (requestUrl) => {
+  return process.env.NEXT_PUBLIC_BASE_URL || new URL(requestUrl).origin || 'http://localhost:3000';
+};
+
 // Handle OPTIONS for CORS
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
-// Route handler
+/**
+ * Handle GET requests for health checks and OAuth flow.
+ * @param {Request} request
+ * @param {{ params?: { path?: string[] } }} context
+ */
 export async function GET(request, { params }) {
   const path = params?.path?.join('/') || '';
   
@@ -43,14 +56,13 @@ export async function GET(request, { params }) {
       const url = new URL(request.url);
       const code = url.searchParams.get('code');
       const error = url.searchParams.get('error');
+      const baseUrl = getBaseUrl(request.url);
 
       if (error) {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return NextResponse.redirect(`${baseUrl}/setup?error=${encodeURIComponent(error)}`);
       }
 
       if (!code) {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return NextResponse.redirect(`${baseUrl}/setup?error=no_code`);
       }
 
@@ -58,14 +70,12 @@ export async function GET(request, { params }) {
         const tokens = await exchangeCodeForTokens(code);
 
         if (tokens.refresh_token) {
-          await storeRefreshToken(tokens.refresh_token);
+          return NextResponse.redirect(`${baseUrl}/setup?token=${encodeURIComponent(tokens.refresh_token)}`);
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        return NextResponse.redirect(`${baseUrl}/setup?success=true`);
+        return NextResponse.redirect(`${baseUrl}/setup?error=no_refresh_token`);
       } catch (err) {
         console.error('OAuth callback error:', err);
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return NextResponse.redirect(`${baseUrl}/setup?error=${encodeURIComponent(err.message)}`);
       }
     }
