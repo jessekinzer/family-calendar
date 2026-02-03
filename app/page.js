@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseQuickAdd } from '@/lib/quickAddParser';
 
@@ -244,9 +245,10 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
             <Button
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
-              className="fixed right-6 z-30 h-11 px-5 text-base font-medium rounded-2xl bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
+              aria-label={loading ? 'Adding event' : 'Add event'}
+              className="fixed right-6 z-30 h-[51px] w-[51px] text-base font-medium rounded-2xl bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
             >
-              {loading ? 'Adding…' : 'Add'}
+              <Calendar className="h-5 w-5" aria-hidden="true" />
             </Button>
             <textarea
               placeholder="Dinner with Mom Friday at 7pm"
