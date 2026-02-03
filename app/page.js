@@ -105,6 +105,7 @@ function ErrorScreen({ message, onRetry }) {
 function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
   const inputRef = useRef(null);
   const parsed = parseQuickAdd(input);
 
@@ -199,6 +200,35 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const viewport = window.visualViewport;
+    if (!viewport) return undefined;
+
+    const updateInset = () => {
+      const visualHeight = viewport.height + viewport.offsetTop;
+      const inset = Math.max(0, window.innerHeight - visualHeight);
+      setKeyboardInset(inset);
+    };
+
+    updateInset();
+    viewport.addEventListener('resize', updateInset);
+    viewport.addEventListener('scroll', updateInset);
+
+    return () => {
+      viewport.removeEventListener('resize', updateInset);
+      viewport.removeEventListener('scroll', updateInset);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--keyboard-inset', `${keyboardInset}px`);
+    return () => {
+      document.documentElement.style.setProperty('--keyboard-inset', '0px');
+    };
+  }, [keyboardInset]);
+
   return (
     <div className="min-h-screen bg-[#f6f4f2] safe-area-inset">
       <div className="w-full px-4 sm:px-6 pb-6 min-h-screen flex flex-col">
@@ -207,7 +237,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
             <Button
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
-              className="absolute right-4 top-4 sm:right-6 sm:top-6 z-10 h-11 px-5 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm"
+              className="fixed right-4 z-30 h-11 px-5 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-6 sm:top-6 sm:bottom-auto sm:z-10"
             >
               {loading ? 'Sending…' : 'Send'}
             </Button>
