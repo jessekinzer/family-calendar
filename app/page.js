@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar, Check, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseQuickAdd } from '@/lib/quickAddParser';
 
-// Success Screen - Notion Style
-function SuccessScreen({ eventData, onAddAnother }) {
-  const [countdown, setCountdown] = useState(5);
+// Success Screen - Calm Confirmation
+function SuccessScreen({ eventData, onAddAnother, onEdit }) {
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,89 +30,49 @@ function SuccessScreen({ eventData, onAddAnother }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-5 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f6f4f2] px-5 safe-area-inset">
       <div className="w-full max-w-sm text-center">
-        <div className="mb-6">
-          <div className="w-12 h-12 bg-emerald-100 rounded-full mx-auto flex items-center justify-center">
-            <Check className="w-6 h-6 text-emerald-600" strokeWidth={2.5} />
-          </div>
+        <p className="text-sm uppercase tracking-[0.2em] text-gray-400 mb-4">Added</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">{eventData.title}</h1>
+        <div className="rounded-2xl bg-white/70 border border-white/70 shadow-sm px-5 py-4 mb-6 text-left">
+          <p className="text-sm text-gray-600">{eventData.dateFormatted}</p>
+          <p className="text-sm text-gray-600 mt-1">{formatEventTime()}</p>
         </div>
-
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">Event added</h1>
-        
-        {/* Event Details */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-5 text-left border border-gray-100">
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Event</p>
-              <p className="text-base font-medium text-gray-900">{eventData.title}</p>
-            </div>
-            <div className="h-px bg-gray-200" />
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Date</p>
-              <p className="text-base text-gray-900">{eventData.dateFormatted}</p>
-            </div>
-            <div className="h-px bg-gray-200" />
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Time</p>
-              <p className="text-base text-gray-900">{formatEventTime()}</p>
-            </div>
-            {eventData.notes && (
-              <>
-                <div className="h-px bg-gray-200" />
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Notes</p>
-                  <p className="text-sm text-gray-700">{eventData.notes}</p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {eventData.htmlLink && (
-          <a
-            href={eventData.htmlLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 mb-5"
+        <div className="flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-sm text-gray-500 hover:text-gray-700"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            View in Google Calendar
-          </a>
-        )}
-
-        <Button
-          onClick={onAddAnother}
-          className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
-        >
-          Add another event
-        </Button>
-
-        <p className="text-gray-400 mt-4 text-xs">
-          Returning in {countdown}s
-        </p>
+            Edit
+          </button>
+          <Button
+            onClick={onAddAnother}
+            className="h-11 px-6 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 text-white transition-colors"
+          >
+            Add another
+          </Button>
+        </div>
+        <p className="text-gray-400 mt-4 text-xs">Resetting in {countdown}s</p>
       </div>
     </div>
   );
 }
 
-// Reconnect Screen - Notion Style
+// Reconnect Screen - Calm Style
 function ReconnectScreen({ onReconnect }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f6f4f2] px-6 safe-area-inset">
       <div className="w-full max-w-sm text-center">
-        <div className="w-12 h-12 bg-amber-100 rounded-full mx-auto mb-5 flex items-center justify-center">
-          <RefreshCw className="w-6 h-6 text-amber-600" />
-        </div>
-
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Reconnect required</h1>
-        <p className="text-gray-500 text-sm mb-8">
+        <p className="text-sm uppercase tracking-[0.2em] text-gray-400 mb-3">Connection</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reconnect required</h1>
+        <p className="text-gray-600 text-sm mb-8">
           Your Google Calendar connection has expired. This happens occasionally for security.
         </p>
 
         <Button
           onClick={onReconnect}
-          className="w-full h-11 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+          className="w-full h-11 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 text-white transition-colors"
         >
           Reconnect Google Calendar
         </Button>
@@ -122,21 +81,18 @@ function ReconnectScreen({ onReconnect }) {
   );
 }
 
-// Error Screen - Notion Style
+// Error Screen - Calm Style
 function ErrorScreen({ message, onRetry }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 safe-area-inset">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f6f4f2] px-6 safe-area-inset">
       <div className="w-full max-w-sm text-center">
-        <div className="w-12 h-12 bg-red-100 rounded-full mx-auto mb-5 flex items-center justify-center">
-          <span className="text-xl">×</span>
-        </div>
-
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
-        <p className="text-gray-500 text-sm mb-8">{message || "Could not add event. Please try again."}</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-gray-400 mb-3">Oops</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
+        <p className="text-gray-600 text-sm mb-8">{message || "Could not add event. Please try again."}</p>
 
         <Button
           onClick={onRetry}
-          className="w-full h-11 text-base font-medium rounded-lg bg-gray-900 hover:bg-gray-800 text-white transition-colors"
+          className="w-full h-11 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 text-white transition-colors"
         >
           Try again
         </Button>
@@ -145,11 +101,10 @@ function ErrorScreen({ message, onRetry }) {
   );
 }
 
-// Quick Add Form - Notion Style
+// Quick Add Form - Single Purpose
 function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showInstallTip, setShowInstallTip] = useState(false);
   const inputRef = useRef(null);
   const parsed = parseQuickAdd(input);
 
@@ -161,14 +116,34 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
     return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
-  const formattedDate = parsed.date
-    ? format(parsed.date, 'EEEE, MMMM d')
-    : 'Add a date (e.g., Sunday or Feb 8)';
-  const formattedTime = parsed.isAllDay
-    ? 'All day'
-    : parsed.startTime
-      ? `${formatTime12h(parsed.startTime)}${parsed.endTime ? ` – ${formatTime12h(parsed.endTime)}` : ''}`
-      : 'Add a time (optional)';
+  const renderHighlightedText = (value) => {
+    if (!value) return null;
+    const matchText = parsed.matchText;
+    if (!matchText) {
+      return <span>{value}</span>;
+    }
+
+    const lowerValue = value.toLowerCase();
+    const lowerMatch = matchText.toLowerCase();
+    const matchIndex = lowerValue.indexOf(lowerMatch);
+    if (matchIndex === -1) {
+      return <span>{value}</span>;
+    }
+
+    const before = value.slice(0, matchIndex);
+    const highlighted = value.slice(matchIndex, matchIndex + matchText.length);
+    const after = value.slice(matchIndex + matchText.length);
+
+    return (
+      <>
+        {before && <span>{before}</span>}
+        <span className="rounded-[6px] bg-[#D9D9D9] px-1 py-0.5">
+          {highlighted}
+        </span>
+        {after && <span>{after}</span>}
+      </>
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -218,106 +193,41 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const shouldFocus = params.get('focus') === '1';
-    if (shouldFocus && inputRef.current) {
+    if (inputRef.current) {
       inputRef.current.focus();
       inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    const dismissed = window.localStorage.getItem('family_calendar_install_tip');
-    if (dismissed) return;
-
-    const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-    if (isIos && !isStandalone) {
-      setShowInstallTip(true);
     }
   }, []);
 
   return (
-    <div className="min-h-screen bg-white safe-area-inset">
-      <div className="max-w-lg mx-auto px-4 pb-10">
-        {showInstallTip && (
-          <div className="mt-6 mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold">Add to Home Screen</p>
-                <p className="text-blue-800">
-                  Tap Share in Safari, then “Add to Home Screen” for one‑tap access.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  window.localStorage.setItem('family_calendar_install_tip', '1');
-                  setShowInstallTip(false);
-                }}
-                className="text-blue-700 hover:text-blue-900"
-                aria-label="Dismiss add to home screen tip"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
-        {/* Header */}
-        <div className="pt-8 pb-5">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-gray-600" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900">New event</h1>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Quick Add Input */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">Quick add</label>
-            <textarea
-              placeholder="Cousins' birthday party on Sunday at 8pm"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              ref={inputRef}
-              className="w-full min-h-[140px] px-4 py-4 text-xl font-semibold text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
-              style={{ fontSize: '20px', lineHeight: '1.4' }}
-              autoFocus
-              required
-            />
-            <p className="text-xs text-gray-400 mt-2">Try: “Dentist next Tuesday at 9am” or “School pickup tomorrow”</p>
-          </div>
-
-          {/* Parsed Preview */}
-          <div className="bg-gray-50 rounded-xl border border-gray-100 px-4 py-4">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Preview</p>
-            <p className="text-base font-semibold text-gray-900">
-              {parsed.title || 'Add an event description'}
-            </p>
-            <p className={`text-sm mt-1 ${parsed.date ? 'text-gray-700' : 'text-amber-600'}`}>
-              {formattedDate}
-            </p>
-            <p className={`text-sm ${parsed.isAllDay ? 'text-gray-700' : parsed.startTime ? 'text-gray-700' : 'text-gray-400'}`}>
-              {formattedTime}
-            </p>
-          </div>
-
-          {/* Submit Button */}
-          <div>
+    <div className="min-h-screen bg-[#f6f4f2] safe-area-inset">
+      <div className="w-full px-4 sm:px-6 pb-6 min-h-screen flex flex-col">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 pt-6 sm:pt-8">
+          <div className="flex-1 relative">
             <Button
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
-              className="w-full h-12 text-base font-medium rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors"
+              className="absolute right-4 top-4 sm:right-6 sm:top-6 z-10 h-11 px-5 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                'Add to calendar'
-              )}
+              {loading ? 'Sending…' : 'Send'}
             </Button>
+            <textarea
+              placeholder="Dinner with Mom Friday at 7pm"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              ref={inputRef}
+              className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] placeholder:leading-[1.4] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
+              autoFocus
+              required
+              aria-label="Describe your event in plain language"
+            />
+            {input && (
+              <div
+                className="pointer-events-none absolute inset-0 px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold text-gray-900 whitespace-pre-wrap break-words"
+              >
+                {renderHighlightedText(input)}
+              </div>
+            )}
           </div>
         </form>
       </div>
@@ -343,13 +253,21 @@ export default function FamilyCalendar() {
 
   if (screen === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f6f4f2]">
+        <p className="text-sm text-gray-400">Loading…</p>
       </div>
     );
   }
 
-  if (screen === 'success') return <SuccessScreen eventData={eventData} onAddAnother={handleReturnToForm} />;
+  if (screen === 'success') {
+    return (
+      <SuccessScreen
+        eventData={eventData}
+        onAddAnother={handleReturnToForm}
+        onEdit={handleReturnToForm}
+      />
+    );
+  }
   if (screen === 'reconnect') return <ReconnectScreen onReconnect={handleReconnect} />;
   if (screen === 'error') return <ErrorScreen message={errorMessage} onRetry={handleReturnToForm} />;
 
