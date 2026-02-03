@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseQuickAdd } from '@/lib/quickAddParser';
 
@@ -103,10 +104,29 @@ function ErrorScreen({ message, onRetry }) {
 
 // Quick Add Form - Single Purpose
 function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
+  const quotes = [
+    `"Life's short, talk fast." - Lorelai`,
+    '"Oy with the poodles already!" - Lorelai',
+    '"I smell snow." - Lorelai',
+    '"Nothing excites me before 11:00." - Rory',
+    '"Coffee first, talk later." - Lorelai',
+    '"People can live for a hundred years without living a minute." - Logan',
+    '"I need caffeine in any form." - Lorelai',
+    '"Who cares if I\'m pretty if I fail my finals?" - Rory',
+    '"It depends on what I have going on that week." - Rory',
+    '"I don\'t like Mondays." - Lorelai',
+    '"The room smells like guilt and Chanel No. 5." - Lorelai',
+    '"Everything in my life has something to do with coffee." - Lorelai',
+    '"In omnia paratus." - Logan',
+    '"Every relationship is just a big honking leap of faith." - Lorelai',
+    '"You\'ve got wings, baby." - Lorelai',
+  ];
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
   const inputRef = useRef(null);
   const parsed = parseQuickAdd(input);
+  const placeholder = useState(() => quotes[Math.floor(Math.random() * quotes.length)])[0];
 
   const formatTime12h = (time24) => {
     if (!time24) return '';
@@ -137,7 +157,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
     return (
       <>
         {before && <span>{before}</span>}
-        <span className="rounded-[6px] bg-[#D9D9D9] px-1 py-0.5">
+        <span className="rounded-[6px] bg-[#80BBEC] px-1 py-0.5 text-white">
           {highlighted}
         </span>
         {after && <span>{after}</span>}
@@ -193,11 +213,49 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#focus') return;
     if (inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus({ preventScroll: true });
       inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#focus') return;
+    const focusInput = () => inputRef.current?.focus({ preventScroll: true });
+    const focusDelay = window.setTimeout(focusInput, 150);
+    return () => window.clearTimeout(focusDelay);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const viewport = window.visualViewport;
+    if (!viewport) return undefined;
+
+    const updateInset = () => {
+      const visualHeight = viewport.height + viewport.offsetTop;
+      const inset = Math.max(0, window.innerHeight - visualHeight);
+      setKeyboardInset(inset);
+    };
+
+    updateInset();
+    viewport.addEventListener('resize', updateInset);
+    viewport.addEventListener('scroll', updateInset);
+
+    return () => {
+      viewport.removeEventListener('resize', updateInset);
+      viewport.removeEventListener('scroll', updateInset);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--keyboard-inset', `${keyboardInset}px`);
+    return () => {
+      document.documentElement.style.setProperty('--keyboard-inset', '0px');
+    };
+  }, [keyboardInset]);
 
   return (
     <div className="min-h-screen bg-[#f6f4f2] safe-area-inset">
@@ -207,17 +265,17 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
             <Button
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
-              className="absolute right-4 top-4 sm:right-6 sm:top-6 z-10 h-11 px-5 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm"
+              aria-label={loading ? 'Adding event' : 'Add event'}
+              className="fixed right-6 z-30 h-[60px] w-[60px] text-base font-medium rounded-full bg-gray-950 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
             >
-              {loading ? 'Sending…' : 'Send'}
+              <Calendar className="h-6 w-6" aria-hidden="true" />
             </Button>
             <textarea
-              placeholder="Dinner with Mom Friday at 7pm"
+              placeholder={placeholder}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
               className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] placeholder:leading-[1.4] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
-              autoFocus
               required
               aria-label="Describe your event in plain language"
             />
