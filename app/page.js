@@ -165,35 +165,6 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
     );
   };
 
-  const addSuggestedEmoji = (value) => {
-    const suggestions = [
-      { keywords: ['coffee', 'cafe', 'espresso', 'latte'], emoji: '☕' },
-      { keywords: ['dinner', 'lunch', 'breakfast', 'brunch', 'meal'], emoji: '🍽️' },
-      { keywords: ['work', 'meeting', 'office', 'client', 'presentation'], emoji: '💼' },
-      { keywords: ['birthday', 'party', 'celebration'], emoji: '🎉' },
-      { keywords: ['gym', 'workout', 'training', 'lift', 'exercise'], emoji: '💪' },
-      { keywords: ['doctor', 'appointment', 'dentist', 'checkup', 'clinic'], emoji: '🏥' },
-      { keywords: ['flight', 'airport', 'travel', 'trip', 'vacation'], emoji: '✈️' },
-      { keywords: ['movie', 'cinema', 'film'], emoji: '🎬' },
-      { keywords: ['call', 'phone', 'chat', 'catch-up'], emoji: '📞' },
-      { keywords: ['study', 'class', 'exam', 'homework'], emoji: '📚' },
-      { keywords: ['date', 'anniversary'], emoji: '💖' },
-    ];
-    const lower = value.toLowerCase();
-    const nextEmojis = suggestions
-      .filter(({ keywords, emoji }) => keywords.some((keyword) => lower.includes(keyword)) && !value.includes(emoji))
-      .map(({ emoji }) => emoji);
-    if (!nextEmojis.length) return value;
-    const spacer = value.endsWith(' ') || value.length === 0 ? '' : ' ';
-    return `${value}${spacer}${nextEmojis.join(' ')}`;
-  };
-
-  const handleInputChange = (event) => {
-    const rawValue = event.target.value;
-    const withEmoji = addSuggestedEmoji(rawValue);
-    setInput(withEmoji);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!parsed.title || !parsed.date) return;
@@ -300,7 +271,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
             <textarea
               placeholder={placeholder}
               value={input}
-              onChange={handleInputChange}
+              onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
               className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] placeholder:leading-[1.4] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
               autoFocus
