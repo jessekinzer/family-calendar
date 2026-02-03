@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getOAuthUrl, exchangeCodeForTokens, storeRefreshToken, getStoredRefreshToken, createCalendarEvent, clearRefreshToken } from '@/lib/googleCalendar';
+import { getOAuthUrl, exchangeCodeForTokens, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
 
 // CORS headers
 const corsHeaders = {
@@ -56,13 +56,13 @@ export async function GET(request, { params }) {
 
       try {
         const tokens = await exchangeCodeForTokens(code);
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
         if (tokens.refresh_token) {
-          await storeRefreshToken(tokens.refresh_token);
+          return NextResponse.redirect(`${baseUrl}/setup?token=${encodeURIComponent(tokens.refresh_token)}`);
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        return NextResponse.redirect(`${baseUrl}/setup?success=true`);
+        return NextResponse.redirect(`${baseUrl}/setup?error=no_refresh_token`);
       } catch (err) {
         console.error('OAuth callback error:', err);
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
