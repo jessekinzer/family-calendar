@@ -213,6 +213,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#focus') return;
     if (inputRef.current) {
       inputRef.current.focus({ preventScroll: true });
       inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -274,7 +275,6 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
               className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] placeholder:leading-[1.4] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
-              autoFocus
               required
               aria-label="Describe your event in plain language"
             />
