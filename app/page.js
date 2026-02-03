@@ -293,7 +293,7 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               type="submit"
               disabled={loading || !parsed.title || !parsed.date}
               aria-label={loading ? 'Adding event' : 'Add event'}
-              className="fixed right-6 z-30 h-[60px] w-[60px] text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
+              className="fixed right-6 z-30 h-[60px] w-[60px] text-base font-medium rounded-full bg-gray-950 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors shadow-sm bottom-[calc(var(--keyboard-inset,0px)+env(keyboard-inset-height,0px)+16px)] sm:absolute sm:right-8 sm:top-6 sm:bottom-auto sm:z-10"
             >
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </Button>
