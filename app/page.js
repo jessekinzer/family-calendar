@@ -104,11 +104,29 @@ function ErrorScreen({ message, onRetry }) {
 
 // Quick Add Form - Single Purpose
 function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
+  const quotes = [
+    `"Life's short, talk fast." - Lorelai`,
+    '"Oy with the poodles already!" - Lorelai',
+    '"I smell snow." - Lorelai',
+    '"Nothing excites me before 11:00." - Rory',
+    '"Coffee first, talk later." - Lorelai',
+    '"People can live for a hundred years without living a minute." - Logan',
+    '"I need caffeine in any form." - Lorelai',
+    '"Who cares if I\'m pretty if I fail my finals?" - Rory',
+    '"It depends on what I have going on that week." - Rory',
+    '"I don\'t like Mondays." - Lorelai',
+    '"The room smells like guilt and Chanel No. 5." - Lorelai',
+    '"Everything in my life has something to do with coffee." - Lorelai',
+    '"In omnia paratus." - Logan',
+    '"Every relationship is just a big honking leap of faith." - Lorelai',
+    '"You\'ve got wings, baby." - Lorelai',
+  ];
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyboardInset, setKeyboardInset] = useState(0);
   const inputRef = useRef(null);
   const parsed = parseQuickAdd(input);
+  const placeholder = useState(() => quotes[Math.floor(Math.random() * quotes.length)])[0];
 
   const formatTime12h = (time24) => {
     if (!time24) return '';
@@ -145,6 +163,35 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
         {after && <span>{after}</span>}
       </>
     );
+  };
+
+  const addSuggestedEmoji = (value) => {
+    const suggestions = [
+      { keywords: ['coffee', 'cafe', 'espresso', 'latte'], emoji: '☕' },
+      { keywords: ['dinner', 'lunch', 'breakfast', 'brunch', 'meal'], emoji: '🍽️' },
+      { keywords: ['work', 'meeting', 'office', 'client', 'presentation'], emoji: '💼' },
+      { keywords: ['birthday', 'party', 'celebration'], emoji: '🎉' },
+      { keywords: ['gym', 'workout', 'training', 'lift', 'exercise'], emoji: '💪' },
+      { keywords: ['doctor', 'appointment', 'dentist', 'checkup', 'clinic'], emoji: '🏥' },
+      { keywords: ['flight', 'airport', 'travel', 'trip', 'vacation'], emoji: '✈️' },
+      { keywords: ['movie', 'cinema', 'film'], emoji: '🎬' },
+      { keywords: ['call', 'phone', 'chat', 'catch-up'], emoji: '📞' },
+      { keywords: ['study', 'class', 'exam', 'homework'], emoji: '📚' },
+      { keywords: ['date', 'anniversary'], emoji: '💖' },
+    ];
+    const lower = value.toLowerCase();
+    const nextEmojis = suggestions
+      .filter(({ keywords, emoji }) => keywords.some((keyword) => lower.includes(keyword)) && !value.includes(emoji))
+      .map(({ emoji }) => emoji);
+    if (!nextEmojis.length) return value;
+    const spacer = value.endsWith(' ') || value.length === 0 ? '' : ' ';
+    return `${value}${spacer}${nextEmojis.join(' ')}`;
+  };
+
+  const handleInputChange = (event) => {
+    const rawValue = event.target.value;
+    const withEmoji = addSuggestedEmoji(rawValue);
+    setInput(withEmoji);
   };
 
   const handleSubmit = async (e) => {
@@ -251,9 +298,9 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </Button>
             <textarea
-              placeholder="Dinner with Mom Friday at 7pm"
+              placeholder={placeholder}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               ref={inputRef}
               className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] placeholder:leading-[1.4] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
               autoFocus
