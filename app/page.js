@@ -223,16 +223,14 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
-              className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
-              style={{ lineHeight: '1.4' }}
+              className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-32 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold placeholder:text-[#A5A5A5] placeholder:font-semibold placeholder:text-[2rem] sm:placeholder:text-[2.5rem] lg:placeholder:text-[2.75rem] placeholder:leading-[1.4] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
               autoFocus
               required
               aria-label="Describe your event in plain language"
             />
             {input && (
               <div
-                className="pointer-events-none absolute inset-0 px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-semibold text-gray-900 whitespace-pre-wrap break-words"
-                style={{ lineHeight: '1.4' }}
+                className="pointer-events-none absolute inset-0 px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] leading-[1.4] font-semibold text-gray-900 whitespace-pre-wrap break-words"
               >
                 {renderHighlightedText(input)}
               </div>

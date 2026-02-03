@@ -114,7 +114,7 @@ button:focus {
 /* Native iOS feel for inputs */
 input,
 textarea {
-  font-size: 17px !important; /* Prevents zoom on iOS */
+  font-size: 17px; /* Prevents zoom on iOS */
 }
 
 /* Smooth transitions */
