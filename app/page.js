@@ -116,6 +116,42 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
     return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
+  const renderHighlightedText = (value) => {
+    if (!value) return null;
+    const timeRegex = /\b\d{1,2}(?::\d{2})?\s?(?:am|pm)?\b/gi;
+    const dateRegex = /\b(?:today|tomorrow|tonight|next\s+\w+|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?|jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|\d{1,2}(?:st|nd|rd|th)?)\b/gi;
+    const combinedRegex = new RegExp(
+      `${dateRegex.source}|${timeRegex.source}`,
+      'gi'
+    );
+
+    const segments = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = combinedRegex.exec(value)) !== null) {
+      const start = match.index;
+      const end = combinedRegex.lastIndex;
+      if (start > lastIndex) {
+        segments.push({ text: value.slice(lastIndex, start), highlight: false });
+      }
+      segments.push({ text: value.slice(start, end), highlight: true });
+      lastIndex = end;
+    }
+    if (lastIndex < value.length) {
+      segments.push({ text: value.slice(lastIndex), highlight: false });
+    }
+
+    return segments.map((segment, index) => (
+      segment.highlight ? (
+        <span key={`${segment.text}-${index}`} className="rounded-[6px] bg-[#D9D9D9] px-1 py-0.5">
+          {segment.text}
+        </span>
+      ) : (
+        <span key={`${segment.text}-${index}`}>{segment.text}</span>
+      )
+    ));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!parsed.title || !parsed.date) return;
@@ -187,26 +223,18 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               ref={inputRef}
-              className="w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-semibold text-gray-900 placeholder:text-[#A5A5A5] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none"
+              className={`w-full h-full min-h-[65vh] sm:min-h-[480px] px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-semibold placeholder:text-[#A5A5A5] bg-[#EBEBEB] border-none rounded-[28px] sm:rounded-[32px] shadow-none focus:bg-[#EBEBEB] focus:ring-0 outline-none transition-all resize-none ${input ? 'text-transparent caret-gray-900' : 'text-gray-900'}`}
               style={{ lineHeight: '1.4' }}
               autoFocus
               required
               aria-label="Describe your event in plain language"
             />
-            {(parsed.date || parsed.startTime || parsed.isAllDay) && (
-              <div className="mt-4 flex flex-wrap gap-2 text-sm text-gray-600">
-                {parsed.date && (
-                  <span className="rounded-full bg-gray-200/80 px-3 py-1 text-gray-700">
-                    {format(parsed.date, 'EEE, MMM d')}
-                  </span>
-                )}
-                {(parsed.isAllDay || parsed.startTime) && (
-                  <span className="rounded-full bg-gray-200/80 px-3 py-1 text-gray-700">
-                    {parsed.isAllDay
-                      ? 'All day'
-                      : `${formatTime12h(parsed.startTime)}${parsed.endTime ? ` – ${formatTime12h(parsed.endTime)}` : ''}`}
-                  </span>
-                )}
+            {input && (
+              <div
+                className="pointer-events-none absolute inset-0 px-5 sm:px-7 py-8 sm:py-10 pr-24 sm:pr-28 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-semibold text-gray-900 whitespace-pre-wrap break-words"
+                style={{ lineHeight: '1.4' }}
+              >
+                {renderHighlightedText(input)}
               </div>
             )}
           </div>
