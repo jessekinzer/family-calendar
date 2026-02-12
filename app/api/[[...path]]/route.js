@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getOAuthUrl, exchangeCodeForTokens, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
+import { sendSlackNotification } from '@/lib/slackNotification';
 
 // CORS headers
 const corsHeaders = {
@@ -123,6 +124,18 @@ export async function POST(request, { params }) {
           endTime,
           notes,
           isAllDay,
+        });
+
+        // Send Slack notification (non-blocking - don't let notification failure stop event creation)
+        sendSlackNotification({
+          title,
+          date,
+          startTime,
+          endTime,
+          notes,
+          isAllDay,
+        }, result).catch(err => {
+          console.error('Slack notification error (non-blocking):', err);
         });
 
         return NextResponse.json({
