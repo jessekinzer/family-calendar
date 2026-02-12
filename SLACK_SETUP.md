@@ -5,6 +5,7 @@ This guide will help you set up Slack notifications for your Family Calendar app
 ## Features
 
 ✅ Real-time notifications when events are created
+✅ **@mentions to ping you** (configurable)
 ✅ Beautifully formatted messages with event details
 ✅ "View in Google Calendar" button for quick access
 ✅ Shows event title, date, time, and notes
@@ -60,6 +61,23 @@ This guide will help you set up Slack notifications for your Family Calendar app
    - Environment: Select all (Production, Preview, Development)
    - Click "Save"
 
+4. **Add Your Slack User ID for @mentions (Optional but Recommended)**
+   - This enables proper @mentions that will ping you with notifications
+   - To get your User ID:
+     1. Open Slack on desktop or web
+     2. Click on your profile picture in the top right
+     3. Click "Profile"
+     4. Click the three dots (•••) → "Copy member ID"
+     5. Your User ID looks like: `U01ABC12DEF`
+   - Back in Vercel Environment Variables:
+     - Click "Add New"
+     - Name: `SLACK_USER_ID`
+     - Value: Paste your User ID (e.g., `U01ABC12DEF`)
+     - Environment: Select all (Production, Preview, Development)
+     - Click "Save"
+   - **Without User ID**: Messages will show "@Jesse" as plain text (no ping)
+   - **With User ID**: Messages will properly @mention you with notification 🔔
+
 ### Step 3: Redeploy Your Application
 
 After adding the environment variable, you need to redeploy:
@@ -85,6 +103,8 @@ After adding the environment variable, you need to redeploy:
 When an event is created, you'll receive a Slack message that includes:
 
 ```
+@Jesse 👋
+
 📅 New Calendar Event Added
 
 Event: Dinner at Italian restaurant
@@ -98,6 +118,8 @@ Notes: Don't forget to make a reservation
 Added to calendar at 2:30:45 PM
 ```
 
+**Note**: If you configure your Slack User ID (Step 2.4), @Jesse will be a proper mention that pings you!
+
 ## Customization Options
 
 Want to customize the notifications? Edit `/lib/slackNotification.js`:
@@ -108,11 +130,12 @@ Want to customize the notifications? Edit `/lib/slackNotification.js`:
 text: '🎉 New Calendar Event Added'  // Try: 🎉 📆 🗓️ ⏰
 ```
 
-### Mention Someone
+### Mention Additional People
 ```javascript
-// Add at the top of the message
-text: '<@USER_ID> New event added!'
-// Get USER_ID from: Slack → Profile → More → Copy member ID
+// The notification already @mentions you!
+// To mention additional people, edit line 48 in slackNotification.js:
+const mentionText = slackUserId ? `<@${slackUserId}> <@ANOTHER_USER_ID>` : '@Jesse @Sarah';
+// Get USER_IDs from: Slack → Profile → More → Copy member ID
 ```
 
 ### Add More Fields
@@ -163,6 +186,7 @@ color: '#36a64f'  // Green for success
    - **"invalid_token"**: Webhook URL is incorrect or expired
    - **"channel_not_found"**: The channel was deleted
    - **No error but no message**: Check you're looking at the right channel
+   - **@mention not pinging**: Make sure you added `SLACK_USER_ID` environment variable with your actual User ID (not your display name)
 
 ### Webhook URL Expired?
 
