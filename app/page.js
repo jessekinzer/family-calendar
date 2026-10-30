@@ -82,6 +82,73 @@ function ReconnectScreen({ onReconnect }) {
   );
 }
 
+// Unlock Screen - Calm Style
+function UnlockScreen({ onUnlocked }) {
+  const [passcode, setPasscode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!passcode) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        onUnlocked();
+      } else {
+        setError(data.message || "That passcode didn't work.");
+      }
+    } catch (err) {
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f6f4f2] px-6 safe-area-inset">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm text-center">
+        <p className="text-sm uppercase tracking-[0.2em] text-gray-400 mb-3">Family only</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Enter the passcode</h1>
+        <p className="text-gray-600 text-sm mb-8">
+          You only need to do this once on this device.
+        </p>
+
+        <input
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          value={passcode}
+          onChange={(e) => setPasscode(e.target.value)}
+          aria-label="Family passcode"
+          autoFocus
+          className="w-full h-11 px-4 mb-4 text-base text-center rounded-full bg-[#EBEBEB] border-none outline-none focus:ring-0"
+        />
+
+        <Button
+          type="submit"
+          disabled={loading || !passcode}
+          className="w-full h-11 text-base font-medium rounded-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 text-white transition-colors"
+        >
+          {loading ? 'Checking…' : 'Unlock'}
+        </Button>
+
+        {error && <p className="text-red-500 text-sm mt-4" role="alert">{error}</p>}
+      </form>
+    </div>
+  );
+}
+
 // Error Screen - Calm Style
 function ErrorScreen({ message, onRetry }) {
   return (
@@ -103,7 +170,7 @@ function ErrorScreen({ message, onRetry }) {
 }
 
 // Quick Add Form - Single Purpose
-function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
+function QuickAddForm({ onSuccess, onError, onNeedsReauth, onNeedsUnlock }) {
   const quotes = [
     `"Life's short, talk fast." - Lorelai`,
     '"Oy with the poodles already!" - Lorelai',
@@ -199,6 +266,8 @@ function QuickAddForm({ onSuccess, onError, onNeedsReauth }) {
           htmlLink: data.event?.htmlLink,
         });
         setInput('');
+      } else if (data.needsUnlock) {
+        onNeedsUnlock();
       } else if (data.needsReauth) {
         onNeedsReauth();
       } else {
@@ -299,12 +368,16 @@ export default function FamilyCalendar() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    setScreen('form');
+    fetch('/api/session')
+      .then((res) => res.json())
+      .then((data) => setScreen(data.unlocked ? 'form' : 'unlock'))
+      .catch(() => setScreen('unlock'));
   }, []);
 
   const handleEventSuccess = (data) => { setEventData(data); setScreen('success'); };
   const handleError = (message) => { setErrorMessage(message); setScreen('error'); };
   const handleNeedsReauth = () => setScreen('reconnect');
+  const handleNeedsUnlock = () => setScreen('unlock');
   const handleReconnect = () => { window.location.href = '/setup'; };
   const handleReturnToForm = () => { setScreen('form'); setEventData(null); setErrorMessage(''); };
 
@@ -325,8 +398,16 @@ export default function FamilyCalendar() {
       />
     );
   }
+  if (screen === 'unlock') return <UnlockScreen onUnlocked={() => setScreen('form')} />;
   if (screen === 'reconnect') return <ReconnectScreen onReconnect={handleReconnect} />;
   if (screen === 'error') return <ErrorScreen message={errorMessage} onRetry={handleReturnToForm} />;
 
-  return <QuickAddForm onSuccess={handleEventSuccess} onError={handleError} onNeedsReauth={handleNeedsReauth} />;
+  return (
+    <QuickAddForm
+      onSuccess={handleEventSuccess}
+      onError={handleError}
+      onNeedsReauth={handleNeedsReauth}
+      onNeedsUnlock={handleNeedsUnlock}
+    />
+  );
 }
