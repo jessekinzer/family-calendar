@@ -4,6 +4,10 @@ A small web app for adding things to our family's Google Calendar. You type what
 
 "Dentist Tuesday at 9am." "Soccer practice tomorrow at 5." "Birthday party Sunday." That's the whole interface.
 
+
+https://github.com/user-attachments/assets/9742b868-099a-4c69-835f-ce6e4c6a9ee1
+
+
 ## Why I built it
 
 Adding an event in the Google Calendar app on a phone means filling out a form: title, date, start time, end time, save. For a calendar the whole family is supposed to use, that's enough hassle that things don't get added. This is one text box and one button.
