@@ -22,6 +22,8 @@ The empty text box shows a random Gilmore Girls quote each time you open it.
 
 It's one shared calendar. During setup, one Google account gets connected, and the app keeps permission to add events to that account's calendar. Everyone in the family uses the same link, and everything lands on that one calendar. There are no user accounts and no database.
 
+To keep strangers off the calendar, the app asks for a family passcode the first time you open it on a device. After that it remembers you for a year. Changing the passcode signs everyone out.
+
 ## For developers
 
 It's a Next.js app hosted on Vercel. Date parsing comes from [chrono-node](https://github.com/wanasit/chrono), with a few rules on top for the cases above.
@@ -33,13 +35,14 @@ It's a Next.js app hosted on Vercel. Date parsing comes from [chrono-node](https
 
    | Variable | What it's for |
    |---|---|
+   | `APP_PASSCODE` | The family passcode. Use a short phrase, not a 4-digit PIN. The app stays locked until this is set. |
    | `GOOGLE_CLIENT_ID` | From your OAuth client |
    | `GOOGLE_CLIENT_SECRET` | From your OAuth client |
    | `GOOGLE_REDIRECT_URI` | The callback URL from step 1 |
    | `CALENDAR_ID` | Optional. The calendar to write to. Defaults to the account's main calendar. |
    | `TIMEZONE` | Optional. Defaults to `America/Chicago`. |
 
-3. Open `/setup` on your deployed site and click Connect with Google. When you finish, the page shows a token. Add it to Vercel as `GOOGLE_REFRESH_TOKEN` and redeploy.
+3. Open `/setup` on your deployed site, enter the passcode, and click Connect with Google. When you finish, the page shows a token. Add it to Vercel as `GOOGLE_REFRESH_TOKEN` and redeploy.
 4. Optional: for Slack pings, add `SLACK_WEBHOOK_URL` and `SLACK_USER_ID`. [SLACK_SETUP.md](SLACK_SETUP.md) walks through it.
 
 If Google ever drops the connection, the app shows a Reconnect screen that sends you back through `/setup`.

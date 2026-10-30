@@ -41,6 +41,11 @@ function SetupContent() {
   const checkAuthStatus = async () => {
     try {
       const res = await fetch('/api/auth/status');
+      if (res.status === 401) {
+        // Passcode not entered yet; the home page shows the unlock screen
+        window.location.href = '/';
+        return;
+      }
       const data = await res.json();
       setStatus(data.authenticated ? 'connected' : 'not_connected');
     } catch (err) {

@@ -1,34 +1,45 @@
 import { NextResponse } from 'next/server';
 import { getOAuthUrl, exchangeCodeForTokens, getStoredRefreshToken, createCalendarEvent } from '@/lib/googleCalendar';
 import { sendSlackNotification } from '@/lib/slackNotification';
+import { checkPasscode, isPasscodeConfigured, isUnlocked, setSessionCookie } from '@/lib/passcode';
 
-// CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+const WRONG_PASSCODE_DELAY_MS = 1000;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
-}
+const locked = () => NextResponse.json(
+  { success: false, needsUnlock: true, message: 'Enter the family passcode first.' },
+  { status: 401 }
+);
 
 export async function GET(request, { params }) {
   const path = params?.path?.join('/') || '';
-  
+
   try {
     // Health check
     if (path === 'health') {
-      return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() }, { headers: corsHeaders });
+      return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
+    }
+
+    // Whether this browser has entered the passcode
+    if (path === 'session') {
+      return NextResponse.json({ unlocked: isUnlocked(request), configured: isPasscodeConfigured() });
+    }
+
+    // Everything below needs the passcode
+    if (!isUnlocked(request)) {
+      if (path.startsWith('auth/google')) {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+      return locked();
     }
 
     // Check if refresh token exists in env
     if (path === 'auth/status') {
       const token = getStoredRefreshToken();
-      return NextResponse.json({ 
+      return NextResponse.json({
         authenticated: !!token,
         message: token ? 'Google Calendar is connected!' : 'Setup required'
-      }, { headers: corsHeaders });
+      });
     }
 
     // Generate Google OAuth URL
@@ -67,12 +78,12 @@ export async function GET(request, { params }) {
       }
     }
 
-    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
-      { status: 500, headers: corsHeaders }
+      { status: 500 }
     );
   }
 }
@@ -81,38 +92,47 @@ export async function POST(request, { params }) {
   const path = params?.path?.join('/') || '';
 
   try {
-    // Verify PIN
-    if (path === 'verify-pin') {
-      const body = await request.json();
-      const { pin } = body;
-      const correctPin = process.env.APP_PIN || '0312';
-      
-      if (pin === correctPin) {
-        return NextResponse.json({ success: true }, { headers: corsHeaders });
-      } else {
+    // Check the family passcode and remember this browser
+    if (path === 'unlock') {
+      if (!isPasscodeConfigured()) {
         return NextResponse.json(
-          { success: false, message: 'Incorrect PIN' },
-          { status: 401, headers: corsHeaders }
+          { success: false, message: 'No passcode is set up yet. Add APP_PASSCODE in Vercel and redeploy.' },
+          { status: 503 }
         );
       }
+
+      const { passcode } = await request.json();
+
+      if (!checkPasscode(passcode)) {
+        // Slows down guessing
+        await wait(WRONG_PASSCODE_DELAY_MS);
+        return NextResponse.json(
+          { success: false, message: "That passcode didn't work." },
+          { status: 401 }
+        );
+      }
+
+      return setSessionCookie(NextResponse.json({ success: true }));
     }
 
     // Add calendar event
     if (path === 'add-event') {
+      if (!isUnlocked(request)) return locked();
+
       const body = await request.json();
       const { title, date, startTime, endTime, notes, isAllDay } = body;
 
       if (!title || !date) {
         return NextResponse.json(
           { success: false, message: 'Title and date are required' },
-          { status: 400, headers: corsHeaders }
+          { status: 400 }
         );
       }
 
       if (!isAllDay && (!startTime || !endTime)) {
         return NextResponse.json(
           { success: false, message: 'Start and end times are required for timed events' },
-          { status: 400, headers: corsHeaders }
+          { status: 400 }
         );
       }
 
@@ -142,34 +162,34 @@ export async function POST(request, { params }) {
           success: true,
           message: 'Event added successfully!',
           event: result,
-        }, { headers: corsHeaders });
+        });
       } catch (err) {
         console.error('Calendar error:', err);
-        
+
         if (err.code === 'NO_REFRESH_TOKEN' || err.code === 'TOKEN_EXPIRED') {
           return NextResponse.json(
-            { 
-              success: false, 
+            {
+              success: false,
               message: 'Google Calendar connection expired. Please reconnect.',
-              needsReauth: true 
+              needsReauth: true
             },
-            { status: 401, headers: corsHeaders }
+            { status: 401 }
           );
         }
 
         return NextResponse.json(
           { success: false, message: `Could not add event. Please try again. ${err}` },
-          { status: 500, headers: corsHeaders }
+          { status: 500 }
         );
       }
     }
 
-    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
-      { status: 500, headers: corsHeaders }
+      { status: 500 }
     );
   }
 }
